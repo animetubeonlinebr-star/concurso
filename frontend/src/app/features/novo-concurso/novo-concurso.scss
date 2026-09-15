@@ -1,0 +1,132 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.upload-area {
+  border: 2px dashed #ccc;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  transition: all 0.3s;
+  cursor: pointer;
+  background: #f9f9f9;
+  margin: 2rem 0;
+
+  &.drag-over {
+    border-color: var(--primary);
+    background: var(--primary-light);
+  }
+
+  .upload-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+  }
+
+  input[type="file"] {
+    display: none;
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    margin-top: 1rem;
+
+    &:hover {
+      background: var(--primary);
+      color: white;
+    }
+  }
+
+  .actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+}
+
+.progress-container {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: var(--gray-50);
+  border-radius: 12px;
+  border: 1px solid var(--gray-200);
+}
+
+.progress-bar-wrapper {
+  width: 100%;
+  height: 24px;
+  background: var(--gray-200);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), #60a5fa);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 0.5rem;
+    transition: width 0.3s ease;
+
+    span {
+      color: white;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+  }
+}
+
+.etapas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  .etapa-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    background: white;
+
+    .etapa-icone {
+      font-size: 1.2rem;
+      width: 24px;
+      text-align: center;
+    }
+
+    .etapa-nome {
+      flex: 1;
+      font-size: 0.95rem;
+
+      &.text-success { color: var(--success); font-weight: 500; }
+      &.text-primary { color: var(--primary); font-weight: 500; }
+      &.text-danger { color: var(--danger); font-weight: 500; }
+      &.text-muted { color: var(--gray-500); }
+    }
+
+    .spinner-border {
+      width: 1rem;
+      height: 1rem;
+      border-width: 0.15rem;
+    }
+  }
+}
+
+.status-message {
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--gray-700);
+  font-weight: 500;
+  margin-top: 0.5rem;
+}

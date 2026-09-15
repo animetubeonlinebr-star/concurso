@@ -1,0 +1,60 @@
+<div class="login-container">
+    <div class="login-card fade-in">
+        <div class="login-logo">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
+            </div>
+            <h1>Criar Conta</h1>
+            <p>Preencha os dados para se cadastrar</p>
+        </div>
+
+        <!-- Mensagem de Sucesso -->
+        <div *ngIf="sucesso" class="alert alert-success" style="background: #d1fae5; color: #065f46; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+            ✅ Cadastro realizado com sucesso! Redirecionando para o login...
+        </div>
+
+        <!-- Mensagem de Erro -->
+        <div *ngIf="erro" class="alert alert-danger" style="background: #fee2e2; color: #991b1b; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+            {{ erro }}
+        </div>
+
+        <form (ngSubmit)="onSubmit()">
+            <div class="form-group">
+                <label for="nome">Nome completo</label>
+                <input type="text" id="nome" class="form-control" 
+                       placeholder="Seu nome" 
+                       [(ngModel)]="nome" name="nome" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" class="form-control" 
+                       placeholder="seu@email.com" 
+                       [(ngModel)]="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" class="form-control" 
+                       placeholder="Mínimo 6 caracteres" 
+                       [(ngModel)]="senha" name="senha" required>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmacaoSenha">Confirmar Senha</label>
+                <input type="password" id="confirmacaoSenha" class="form-control" 
+                       placeholder="Digite a senha novamente" 
+                       [(ngModel)]="confirmacaoSenha" name="confirmacaoSenha" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" 
+                    [disabled]="carregando || sucesso">
+                {{ carregando ? 'Cadastrando...' : 'Cadastrar' }}
+            </button>
+        </form>
+
+        <div class="login-footer">
+            Já tem conta? <a href="#" (click)="irParaLogin()">Faça login</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,61 @@
+<div style="margin-bottom: 1.5rem;">
+    <button class="btn btn-sm btn-outline" (click)="voltarSimulados()" style="margin-bottom: 1rem;">
+        ← Voltar aos Simulados
+    </button>
+</div>
+
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div class="result-hero">
+        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem;">Resultado Geral</h2>
+        <div class="result-circle">
+            <span class="percentage">68%</span>
+            <span class="label">Aproveitamento</span>
+        </div>
+        <div class="result-stats">
+            <div class="result-stat correct">
+                <div class="value">34</div>
+                <div class="label">Acertos</div>
+            </div>
+            <div class="result-stat incorrect">
+                <div class="value">12</div>
+                <div class="label">Erros</div>
+            </div>
+            <div class="result-stat unanswered">
+                <div class="value">4</div>
+                <div class="label">Não respondidas</div>
+            </div>
+        </div>
+        <button class="btn btn-primary btn-lg" (click)="verExplicacao()">
+            Ver gabarito completo
+        </button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Resumo por Disciplina</h3>
+    </div>
+    <div class="subject-performance">
+        <div class="subject-row">
+            <span class="subject-name">Direito Constitucional</span>
+            <div class="subject-bar-container">
+                <div class="subject-bar-fill high" style="width: 75%"></div>
+            </div>
+            <span class="subject-value">75%</span>
+        </div>
+        <div class="subject-row">
+            <span class="subject-name">Direito Administrativo</span>
+            <div class="subject-bar-container">
+                <div class="subject-bar-fill medium" style="width: 62%"></div>
+            </div>
+            <span class="subject-value">62%</span>
+        </div>
+        <div class="subject-row">
+            <span class="subject-name">Legislação Penal</span>
+            <div class="subject-bar-container">
+                <div class="subject-bar-fill low" style="width: 48%"></div>
+            </div>
+            <span class="subject-value">48%</span>
+        </div>
+    </div>
+</div>

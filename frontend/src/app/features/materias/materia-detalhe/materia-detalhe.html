@@ -1,0 +1,35 @@
+<div class="materia-page" *ngIf="!carregando; else loading">
+  <header class="cabecalho" *ngIf="materia">
+    <button mat-icon-button (click)="voltar()" aria-label="Voltar">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+
+    <div class="titulo-bloco">
+      <h1>{{ materia.nome }}</h1>
+      <p class="subtitulo" *ngIf="materia.descricao">{{ materia.descricao }}</p>
+    </div>
+
+    <button mat-flat-button color="primary" class="btn-gerar" (click)="gerarSimulado()">
+      <mat-icon>assignment</mat-icon>
+      GERAR SIMULADO
+    </button>
+  </header>
+
+  <section class="secao" *ngIf="materia?.topicos?.length">
+    <h2>Tópicos</h2>
+    <mat-chip-set>
+      <mat-chip *ngFor="let t of materia!.topicos!">{{ t.nome }}</mat-chip>
+    </mat-chip-set>
+  </section>
+
+  <section class="secao" *ngIf="!materia?.topicos?.length">
+    <p class="vazio">Nenhum tópico cadastrado para esta matéria ainda.</p>
+  </section>
+</div>
+
+<ng-template #loading>
+  <div class="loading">
+    <mat-spinner diameter="42"></mat-spinner>
+    <p>Carregando matéria…</p>
+  </div>
+</ng-template>

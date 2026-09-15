@@ -1,0 +1,54 @@
+<p>detalhe-concurso works!</p>
+<div class="detalhe-page" *ngIf="!carregando; else loading">
+  <header class="cabecalho" *ngIf="concurso">
+    <button mat-icon-button (click)="voltar()" aria-label="Voltar">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+
+    <div class="titulo-bloco">
+      <h1>{{ concurso.nome }}</h1>
+      <p class="subtitulo" *ngIf="concurso.orgao">
+        {{ concurso.orgao }}
+        <span *ngIf="concurso.cargo"> · {{ concurso.cargo }}</span>
+        <span *ngIf="concurso.banca"> · {{ concurso.banca }}</span>
+        <span *ngIf="concurso.ano"> · {{ concurso.ano }}</span>
+      </p>
+    </div>
+  </header>
+
+  <section class="materias">
+    <h2>Matérias</h2>
+
+    <div class="vazio" *ngIf="materias.length === 0">
+      <mat-icon>menu_book</mat-icon>
+      <p>Este concurso ainda não possui matérias cadastradas.</p>
+    </div>
+
+    <div class="grid-materias" *ngIf="materias.length > 0">
+      <mat-card
+        class="card-materia"
+        *ngFor="let m of materias"
+        (click)="abrirMateria(m)">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>book</mat-icon>
+          <mat-card-title>{{ m.nome }}</mat-card-title>
+          <mat-card-subtitle *ngIf="m.descricao">{{ m.descricao }}</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-actions align="end">
+          <button mat-button color="primary">
+            ESTUDAR
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </section>
+</div>
+
+<ng-template #loading>
+  <div class="loading">
+    <mat-spinner diameter="42"></mat-spinner>
+    <p>Carregando concurso…</p>
+  </div>
+</ng-template>

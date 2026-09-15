@@ -1,0 +1,32 @@
+<div style="margin-bottom: 1.5rem;">
+    <h2 style="font-size: 1.5rem; font-weight: 700;">Meu Perfil</h2>
+    <p style="color: var(--gray-500); font-size: 0.9rem;">Gerencie suas informações pessoais</p>
+</div>
+
+<div class="card" style="max-width: 600px;">
+    <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--gray-200);">
+        <div class="user-avatar" style="width: 80px; height: 80px; font-size: 2rem;">M</div>
+        <div>
+            <h3 style="font-size: 1.25rem; font-weight: 700;">Marcos Bassetto</h3>
+            <p style="color: var(--gray-500);">marcos@email.com</p>
+            <span class="badge badge-primary" style="margin-top: 0.5rem;">Plano Gratuito</span>
+        </div>
+    </div>
+    <div class="form-group">
+        <label>Nome completo</label>
+        <input type="text" class="form-control" value="Marcos Bassetto">
+    </div>
+    <div class="form-group">
+        <label>E-mail</label>
+        <input type="email" class="form-control" value="marcos@email.com">
+    </div>
+    <div class="form-group">
+        <label>Concurso principal</label>
+        <select class="form-control">
+            <option>TJ-SP - Técnico Judiciário</option>
+            <option>PRF - Policial Rodoviário Federal</option>
+            <option>Receita Federal - Auditor</option>
+        </select>
+    </div>
+    <button class="btn btn-primary" (click)="salvarPerfil()">Salvar alterações</button>
+</div>

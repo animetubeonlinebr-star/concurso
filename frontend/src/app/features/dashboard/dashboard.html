@@ -1,0 +1,139 @@
+<div class="welcome-banner">
+    <h2>Olá, Marcos! 👋</h2>
+    <p>Continue sua preparação. Você tem 2 simulados pendentes.</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <svg viewBox="0 0 24 24">
+                <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z" />
+            </svg>
+        </div>
+        <div class="stat-info">
+            <h3>12</h3>
+            <p>Simulados Realizados</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green">
+            <svg viewBox="0 0 24 24">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+            </svg>
+        </div>
+        <div class="stat-info">
+            <h3>68%</h3>
+            <p>Taxa de Acerto</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+            </svg>
+        </div>
+        <div class="stat-info">
+            <h3>342</h3>
+            <p>Questões Respondidas</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon purple">
+            <svg viewBox="0 0 24 24">
+                <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+            </svg>
+        </div>
+        <div class="stat-info">
+            <h3>24h</h3>
+            <p>Tempo de Estudo</p>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <h3 class="card-title">Desempenho por Disciplina</h3>
+                <p class="card-subtitle">Últimos 30 dias</p>
+            </div>
+        </div>
+        <div class="subject-performance">
+            <div class="subject-row">
+                <span class="subject-name">Direito Constitucional</span>
+                <div class="subject-bar-container">
+                    <div class="subject-bar-fill high" style="width: 72%"></div>
+                </div>
+                <span class="subject-value">72%</span>
+            </div>
+            <div class="subject-row">
+                <span class="subject-name">Direito Administrativo</span>
+                <div class="subject-bar-container">
+                    <div class="subject-bar-fill high" style="width: 65%"></div>
+                </div>
+                <span class="subject-value">65%</span>
+            </div>
+            <div class="subject-row">
+                <span class="subject-name">Legislação Penal</span>
+                <div class="subject-bar-container">
+                    <div class="subject-bar-fill medium" style="width: 58%"></div>
+                </div>
+                <span class="subject-value">58%</span>
+            </div>
+            <div class="subject-row">
+                <span class="subject-name">Informática</span>
+                <div class="subject-bar-container">
+                    <div class="subject-bar-fill high" style="width: 80%"></div>
+                </div>
+                <span class="subject-value">80%</span>
+            </div>
+            <div class="subject-row">
+                <span class="subject-name">Português</span>
+                <div class="subject-bar-container">
+                    <div class="subject-bar-fill medium" style="width: 61%"></div>
+                </div>
+                <span class="subject-value">61%</span>
+            </div>
+            <div class="subject-row">
+                <span class="subject-name">Raciocínio Lógico</span>
+                <div class="subject-bar-container">
+                    <div class="subject-bar-fill low" style="width: 45%"></div>
+                </div>
+                <span class="subject-value">45%</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <h3 class="card-title">Simulados Recentes</h3>
+                <p class="card-subtitle">Suas últimas tentativas</p>
+            </div>
+            <button class="btn btn-sm btn-outline" (click)="irParaSimulados()">Ver todos</button>
+        </div>
+        <div class="simulado-list">
+            <div class="simulado-item" (click)="irParaResultado()">
+                <div class="simulado-info">
+                    <h4>Simulado TJ-SP</h4>
+                    <p>Direito • 50 questões • Finalizado em 10/05/2024</p>
+                </div>
+                <span class="badge badge-success">76%</span>
+            </div>
+            <div class="simulado-item" (click)="irParaResultado()">
+                <div class="simulado-info">
+                    <h4>Simulado PRF</h4>
+                    <p>Legislação • 40 questões • Finalizado em 08/05/2024</p>
+                </div>
+                <span class="badge badge-success">65%</span>
+            </div>
+            <div class="simulado-item">
+                <div class="simulado-info">
+                    <h4>Simulado Receita Federal</h4>
+                    <p>Geral • 60 questões • Em andamento</p>
+                </div>
+                <span class="badge badge-warning">Em andamento</span>
+            </div>
+        </div>
+    </div>
+</div>

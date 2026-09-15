@@ -1,0 +1,85 @@
+<div
+    style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h2 style="font-size: 1.5rem; font-weight: 700;">Meus Simulados</h2>
+        <p style="color: var(--gray-500); font-size: 0.9rem;">Gerencie e crie novos simulados</p>
+    </div>
+    <button class="btn btn-primary" (click)="criarSimulado()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+        </svg>
+        Criar Simulado
+    </button>
+</div>
+
+<div class="filter-bar">
+    <input type="text" class="search-input" placeholder="Buscar simulados..." id="searchSimulados">
+    <select class="filter-select">
+        <option>Todos os status</option>
+        <option>Finalizados</option>
+        <option>Em andamento</option>
+        <option>Não iniciados</option>
+    </select>
+    <select class="filter-select">
+        <option>Todas as disciplinas</option>
+        <option>Direito Constitucional</option>
+        <option>Direito Administrativo</option>
+        <option>Português</option>
+        <option>Informática</option>
+    </select>
+</div>
+
+<div class="card">
+    <div class="simulado-list">
+        <div class="simulado-item" (click)="iniciarSimulado()">
+            <div class="simulado-info">
+                <h4>Simulado TJ-SP - Direito Constitucional</h4>
+                <p>50 questões • 60 min • Não iniciado</p>
+            </div>
+            <div class="simulado-meta">
+                <span class="badge badge-gray">Pendente</span>
+                <button class="btn btn-sm btn-primary">Iniciar</button>
+            </div>
+        </div>
+        <div class="simulado-item" (click)="iniciarSimulado()">
+            <div class="simulado-info">
+                <h4>Simulado PRF - Legislação de Trânsito</h4>
+                <p>40 questões • 45 min • Não iniciado</p>
+            </div>
+            <div class="simulado-meta">
+                <span class="badge badge-gray">Pendente</span>
+                <button class="btn btn-sm btn-primary">Iniciar</button>
+            </div>
+        </div>
+        <div class="simulado-item">
+            <div class="simulado-info">
+                <h4>Simulado Receita Federal - Geral</h4>
+                <p>60 questões • 90 min • Em andamento</p>
+            </div>
+            <div class="simulado-meta">
+                <span class="badge badge-warning">Em andamento</span>
+                <button class="btn btn-sm btn-outline">Continuar</button>
+            </div>
+        </div>
+        <div class="simulado-item" (click)="verResultado()">
+            <div class="simulado-info">
+                <h4>Simulado TJ-SP - Direito Administrativo</h4>
+                <p>50 questões • 60 min • Finalizado em 10/05/2024</p>
+            </div>
+            <div class="simulado-meta">
+                <span class="badge badge-success">76%</span>
+                <button class="btn btn-sm btn-outline">Ver resultado</button>
+            </div>
+        </div>
+        <div class="simulado-item" (click)="verResultado()">
+            <div class="simulado-info">
+                <h4>Simulado PRF - Português</h4>
+                <p>30 questões • 40 min • Finalizado em 08/05/2024</p>
+            </div>
+            <div class="simulado-meta">
+                <span class="badge badge-success">65%</span>
+                <button class="btn btn-sm btn-outline">Ver resultado</button>
+            </div>
+        </div>
+    </div>
+</div>

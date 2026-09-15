@@ -1,0 +1,27 @@
+<h2 mat-dialog-title>Gerar simulado</h2>
+
+<mat-dialog-content>
+  <p class="materia-nome">
+    <mat-icon>menu_book</mat-icon>
+    {{ data.materiaNome }}
+  </p>
+
+  <p class="label">Quantidade de questões</p>
+  <mat-radio-group [(ngModel)]="quantidadeQuestoes" class="opcoes">
+    <mat-radio-button *ngFor="let q of opcoes" [value]="q">
+      {{ q }}
+    </mat-radio-button>
+  </mat-radio-group>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancelar()" [disabled]="enviando">Cancelar</button>
+  <button
+    mat-flat-button
+    color="primary"
+    (click)="gerar()"
+    [disabled]="enviando">
+    <mat-spinner *ngIf="enviando" diameter="18"></mat-spinner>
+    <span *ngIf="!enviando">Gerar</span>
+  </button>
+</mat-dialog-actions>

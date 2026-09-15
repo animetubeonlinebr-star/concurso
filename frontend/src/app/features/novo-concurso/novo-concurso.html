@@ -1,0 +1,52 @@
+<div class="container">
+  <h2>📄 Novo Concurso</h2>
+  <p>Importe o edital do concurso em formato PDF.</p>
+
+  <!-- Área de upload -->
+  <div class="upload-area"
+       (dragover)="onDragOver($event)"
+       (dragleave)="onDragLeave($event)"
+       (drop)="onDrop($event)"
+       [class.drag-over]="dragOver">
+
+    <div *ngIf="!arquivoSelecionado && !processando">
+      <div class="upload-icon">📂</div>
+      <p>Arraste o PDF para cá</p>
+      <p>ou</p>
+      <input type="file" accept=".pdf" (change)="onFileSelected($event)" #fileInput>
+      <button class="btn btn-outline" (click)="fileInput.click()">Selecionar edital</button>
+    </div>
+
+    <div *ngIf="arquivoSelecionado && !processando">
+      <p><strong>{{ arquivoSelecionado.name }}</strong></p>
+      <p>Tamanho: {{ arquivoSelecionado.size / 1024 | number:'1.0-0' }} KB</p>
+      <div class="actions">
+        <button (click)="upload()" class="btn btn-primary">📤 Enviar</button>
+        <button (click)="limparArquivo()" class="btn btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progresso -->
+  <div *ngIf="processando" class="progress-container">
+    <div class="progress-bar-wrapper">
+      <div class="progress-bar" [style.width.%]="progresso">
+        <span>{{ progresso }}%</span>
+      </div>
+    </div>
+
+    <div class="etapas">
+      <div *ngFor="let etapa of etapas; let i = index" class="etapa-item">
+        <span class="etapa-icone">{{ getStatusIcon(etapa.status) }}</span>
+        <span class="etapa-nome" [class]="getStatusClass(etapa.status)">
+          {{ etapa.nome }}
+        </span>
+        <span *ngIf="etapa.status === 'em-andamento'" class="spinner-border spinner-border-sm" role="status">
+          <span class="visually-hidden">Carregando...</span>
+        </span>
+      </div>
+    </div>
+
+    <p class="status-message">{{ mensagemProgresso }}</p>
+  </div>
+</div>

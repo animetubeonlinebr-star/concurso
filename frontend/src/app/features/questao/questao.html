@@ -1,0 +1,79 @@
+<div class="question-header">
+    <div class="question-progress">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 24%"></div>
+        </div>
+        <span class="progress-text" id="progressText">Questão 12 de 50</span>
+    </div>
+    <div class="question-timer" id="timer">
+        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+        <span id="timerValue">00:45:12</span>
+    </div>
+</div>
+
+<div class="question-tags">
+    <span class="question-tag badge-primary">Direito Constitucional</span>
+    <span class="question-tag badge-gray">Nível: Médio</span>
+    <span class="question-tag badge-gray">Banca: FGV</span>
+</div>
+
+<div class="question-body">
+    <div class="question-number">Questão 12 de 50</div>
+    <div class="question-text">
+        A Constituição Federal de 1988 estabelece que são direitos e garantias fundamentais:
+    </div>
+    <div class="alternatives">
+        <div class="alternative" (click)="selecionarAlternativa('A')">
+            <div class="alternative-letter">A</div>
+            <div class="alternative-text">apenas os direitos individuais.</div>
+        </div>
+        <div class="alternative" (click)="selecionarAlternativa('B')">
+            <div class="alternative-letter">B</div>
+            <div class="alternative-text">apenas os direitos sociais.</div>
+        </div>
+        <div class="alternative selected" (click)="selecionarAlternativa('C')">
+            <div class="alternative-letter">C</div>
+            <div class="alternative-text">os direitos individuais e coletivos.</div>
+        </div>
+        <div class="alternative" (click)="selecionarAlternativa('D')">
+            <div class="alternative-letter">D</div>
+            <div class="alternative-text">apenas os direitos políticos.</div>
+        </div>
+        <div class="alternative" (click)="selecionarAlternativa('E')">
+            <div class="alternative-letter">E</div>
+            <div class="alternative-text">todos os direitos acima.</div>
+        </div>
+    </div>
+</div>
+
+<div class="question-nav">
+    <div class="question-numbers">
+        <div class="q-number">1</div>
+        <div class="q-number">2</div>
+        <div class="q-number">3</div>
+        <div class="q-number">4</div>
+        <div class="q-number">5</div>
+        <div class="q-number">6</div>
+        <div class="q-number">7</div>
+        <div class="q-number">8</div>
+        <div class="q-number">9</div>
+        <div class="q-number">10</div>
+        <div class="q-number">11</div>
+        <div class="q-number current">12</div>
+        <div class="q-number">13</div>
+        <div class="q-number">14</div>
+        <div class="q-number">15</div>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        <button class="btn btn-outline" (click)="questaoAnterior()">← Anterior</button>
+        <button class="btn btn-secondary" (click)="marcarQuestao()">🚩 Marcar</button>
+        <button class="btn btn-primary" (click)="proximaQuestao()">Próxima →</button>
+    </div>
+</div>
+
+<div style="margin-top: 1.5rem; text-align: center;">
+    <button class="btn btn-danger btn-lg" (click)="finalizarSimulado()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>
+        Finalizar Simulado
+    </button>
+</div>

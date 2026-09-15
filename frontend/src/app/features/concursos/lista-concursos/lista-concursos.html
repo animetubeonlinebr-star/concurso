@@ -1,0 +1,56 @@
+<div class="lista-page">
+  <header class="cabecalho">
+    <div>
+      <h1>Meus concursos</h1>
+      <p class="subtitulo">Selecione um concurso ou crie um novo.</p>
+    </div>
+
+    <button
+      mat-flat-button
+      color="primary"
+      class="btn-novo"
+      (click)="novoConcurso()">
+      <mat-icon>add</mat-icon>
+      NOVO CONCURSO
+    </button>
+  </header>
+
+  <div class="loading" *ngIf="carregando">
+    <mat-spinner diameter="42"></mat-spinner>
+    <p>Carregando concursos…</p>
+  </div>
+
+  <div class="vazio" *ngIf="!carregando && concursos.length === 0">
+    <mat-icon>folder_open</mat-icon>
+    <p>Você ainda não cadastrou nenhum concurso.</p>
+    <button mat-stroked-button color="primary" (click)="novoConcurso()">
+      Criar o primeiro
+    </button>
+  </div>
+
+  <div class="grid-concursos" *ngIf="!carregando && concursos.length > 0">
+    <mat-card
+      class="card-concurso"
+      *ngFor="let c of concursos"
+      (click)="abrirConcurso(c)">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>emoji_events</mat-icon>
+        <mat-card-title>{{ c.nome }}</mat-card-title>
+        <mat-card-subtitle *ngIf="c.orgao">{{ c.orgao }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <p *ngIf="c.cargo"><strong>Cargo:</strong> {{ c.cargo }}</p>
+        <p *ngIf="c.banca"><strong>Banca:</strong> {{ c.banca }}</p>
+        <p *ngIf="c.ano"><strong>Ano:</strong> {{ c.ano }}</p>
+      </mat-card-content>
+
+      <mat-card-actions align="end">
+        <button mat-button color="primary">
+          ABRIR
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>
