@@ -2,14 +2,22 @@ package br.com.marcosbassetto.concursos.application.edital;
 
 import br.com.marcosbassetto.concursos.common.enums.Status;
 import br.com.marcosbassetto.concursos.common.exception.BusinessException;
+import br.com.marcosbassetto.concursos.common.exception.ErrorCodes;
+import br.com.marcosbassetto.concursos.common.exception.ResourceNotFoundException;
 import br.com.marcosbassetto.concursos.common.util.NomeNormalizer;
 import br.com.marcosbassetto.concursos.domain.concurso.entity.ConcursoEntity;
-import br.com.marcosbassetto.concursos.domain.concurso.service.ConcursoService;
+import br.com.marcosbassetto.concursos.domain.concurso.repository.ConcursoRepository;
 import br.com.marcosbassetto.concursos.domain.curso.entity.CursoEntity;
 import br.com.marcosbassetto.concursos.domain.curso.repository.CursoRepository;
-import br.com.marcosbassetto.concursos.domain.edital.dto.EstruturaEditalDTO;
-import br.com.marcosbassetto.concursos.domain.edital.dto.MateriaExtraida;
-import br.com.marcosbassetto.concursos.domain.edital.dto.TopicoExtraido;
+import br.com.marcosbassetto.concursos.domain.edital.domain.StatusProcessamento;
+import br.com.marcosbassetto.concursos.domain.edital.dto.ConfirmacaoEstruturaResponse;
+import br.com.marcosbassetto.concursos.domain.edital.entity.EditalImportacaoEntity;
+import br.com.marcosbassetto.concursos.domain.edital.entity.MateriaSugeridaEntity;
+import br.com.marcosbassetto.concursos.domain.edital.entity.TopicoSugeridoEntity;
+import br.com.marcosbassetto.concursos.domain.edital.repository.EditalImportacaoRepository;
+import br.com.marcosbassetto.concursos.domain.edital.repository.MateriaSugeridaRepository;
+import br.com.marcosbassetto.concursos.domain.edital.repository.TopicoSugeridoRepository;
+import br.com.marcosbassetto.concursos.domain.materia.domain.OrigemMateria;
 import br.com.marcosbassetto.concursos.domain.materia.entity.MateriaEntity;
 import br.com.marcosbassetto.concursos.domain.materia.service.MateriaService;
 import br.com.marcosbassetto.concursos.domain.topico.entity.TopicoEntity;
@@ -19,9 +27,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
-@Deprecated(since = "migração Template+Strategy")
+/**
+ * Promove o staging revisado para a hierarquia real ({@code materia} e
+ * {@code topico}) e encerra a importação.
+ *
+ * Só matérias selecionadas são persistidas. O unique constraint de matéria e
+ * o erro MATERIA_DUPLICADA do {@link MateriaService} continuam sendo a última
+ * barreira: se algo escapou da detecção, a confirmação falha em vez de
+ * gravar estrutura inconsistente.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -30,83 +48,120 @@ public class ConfirmarEstruturaUseCase {
     private static final String CURSO_PADRAO_NOME = "Geral";
     private static final String CURSO_PADRAO_CODIGO = "GERAL";
 
-    private final ConcursoService concursoService;
+    private final ConcursoRepository concursoRepository;
+    private final EditalImportacaoRepository importacaoRepository;
+    private final MateriaSugeridaRepository materiaSugeridaRepository;
+    private final TopicoSugeridoRepository topicoSugeridoRepository;
+    private final CursoRepository cursoRepository;
     private final MateriaService materiaService;
     private final TopicoService topicoService;
-    private final CursoRepository cursoRepository;
 
     @Transactional
-    public void confirmar(Long concursoId, EstruturaEditalDTO estrutura) {
+    public ConfirmacaoEstruturaResponse confirmar(Long concursoId, Long usuarioId) {
+        ConcursoEntity concurso = concursoRepository.findByIdAndUsuario_Id(concursoId, usuarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Concurso", "id", concursoId));
 
-        ConcursoEntity concurso = concursoService.buscarEntidadePorId(concursoId);
+        EditalImportacaoEntity importacao = importacaoRepository.findByConcurso_Id(concursoId)
+                .orElseThrow(() -> new BusinessException(
+                        ErrorCodes.IMPORTACAO_NAO_ENCONTRADA,
+                        "Nenhuma importação encontrada para o concurso " + concursoId + "."));
 
-        List<MateriaExtraida> materias = extrairMaterias(estrutura);
-
-        if (materias.isEmpty()) {
+        // Idempotência: importação já promovida não pode ser promovida de novo.
+        if (StatusProcessamento.CONFIRMADO.equals(importacao.getStatus())) {
             throw new BusinessException(
-                    "A estrutura do edital está vazia. Nenhuma matéria encontrada.");
+                    ErrorCodes.CONFLITO_ESTADO,
+                    "Esta importação já foi confirmada.");
         }
 
-        CursoEntity cursoPadrao = obterOuCriarCursoPadrao(concurso);
+        if (!importacao.aguardandoRevisao()) {
+            throw new BusinessException(
+                    ErrorCodes.ESTRUTURA_NAO_REVISAVEL,
+                    "A estrutura deste edital não está pronta para confirmação. "
+                            + "Status atual: " + importacao.getStatus() + ".");
+        }
+
+        List<MateriaSugeridaEntity> sugeridas =
+                materiaSugeridaRepository.findByImportacao_IdOrderByOrdemAsc(importacao.getId());
+
+        List<MateriaSugeridaEntity> selecionadas = sugeridas.stream()
+                .filter(m -> Boolean.TRUE.equals(m.getSelecionada()))
+                .toList();
+
+        if (selecionadas.isEmpty()) {
+            throw new BusinessException(
+                    ErrorCodes.DADOS_INVALIDOS,
+                    "Nenhuma matéria foi selecionada. Selecione ao menos uma para confirmar.");
+        }
+
+        CursoEntity curso = obterOuCriarCursoPadrao(concurso);
+
+        List<String> ignoradas = new ArrayList<>();
+        int materiasPersistidas = 0;
+        int topicosPersistidos = 0;
 
         int ordemMateria = 1;
-        for (MateriaExtraida mDto : materias) {
-
-            if (mDto.nome() == null || mDto.nome().isBlank()) {
-                continue;
-            }
+        for (MateriaSugeridaEntity sugerida : selecionadas) {
 
             MateriaEntity materia = new MateriaEntity();
-            materia.setCurso(cursoPadrao);
-            materia.setNome(mDto.nome());
+            materia.setCurso(curso);
+            materia.setNome(sugerida.getNome());
             materia.setOrdem(ordemMateria++);
             materia.setStatus(Status.ATIVO);
+            materia.setOrigem(OrigemMateria.EDITAL);
             materia = materiaService.criar(materia);
 
-            List<TopicoExtraido> topicos = mDto.topicos();
-            if (topicos != null && !topicos.isEmpty()) {
-                int ordemTopico = 1;
-                for (TopicoExtraido t : topicos) {
-                    if (t == null || t.nome() == null || t.nome().isBlank()) {
-                        continue;
-                    }
+            materiasPersistidas++;
 
-                    TopicoEntity topico = new TopicoEntity();
-                    topico.setMateria(materia);
-                    topico.setNome(t.nome());
-                    topico.setOrdem(ordemTopico++);
-                    topico.setAtivo(true);
-                    topicoService.criar(topico);
+            List<TopicoSugeridoEntity> topicos = topicoSugeridoRepository
+                    .findByMateriaSugerida_IdOrderByOrdemAsc(sugerida.getId());
+
+            int ordemTopico = 1;
+            for (TopicoSugeridoEntity sugerido : topicos) {
+                if (!Boolean.TRUE.equals(sugerido.getSelecionado())) {
+                    ignoradas.add(materia.getNome() + " > " + sugerido.getNome());
+                    continue;
                 }
+
+                TopicoEntity topico = new TopicoEntity();
+                topico.setMateria(materia);
+                topico.setNome(sugerido.getNome());
+                topico.setOrdem(ordemTopico++);
+                topico.setAtivo(true);
+                topicoService.criar(topico);
+
+                topicosPersistidos++;
             }
         }
 
-        concursoService.marcarComoProcessado(concursoId);
+        importacao.setStatus(StatusProcessamento.CONFIRMADO);
+        importacao.setConfirmadoEm(LocalDateTime.now());
+        importacaoRepository.save(importacao);
+
+        concurso.definirStatusProcessamento(StatusProcessamento.CONFIRMADO);
+        concursoRepository.save(concurso);
+
+        log.info("Estrutura confirmada | concursoId={} | materias={} | topicos={} | ignorados={}",
+                concursoId, materiasPersistidas, topicosPersistidos, ignoradas.size());
+
+        return new ConfirmacaoEstruturaResponse(
+                concursoId, materiasPersistidas, topicosPersistidos, ignoradas);
     }
 
-    private List<MateriaExtraida> extrairMaterias(EstruturaEditalDTO estrutura) {
-        if (estrutura.cursos() != null && !estrutura.cursos().isEmpty()) {
-            return estrutura.materiasDoPrimeiroCurso();
-        }
-        return estrutura.materias();
-    }
-
+    /**
+     * O fluxo de edital não tem noção de cargo/módulo, então todas as
+     * matérias confirmadas vão para o curso "Geral" do concurso.
+     */
     private CursoEntity obterOuCriarCursoPadrao(ConcursoEntity concurso) {
         String chave = NomeNormalizer.normalizar(CURSO_PADRAO_NOME);
 
         return cursoRepository.findByConcursoIdAndNomeNormalizado(concurso.getId(), chave)
-                .orElseGet(() -> {
-                    log.debug("Criando curso padrão '{}' para concurso id={} (fluxo legado)",
-                            CURSO_PADRAO_NOME, concurso.getId());
-                    return cursoRepository.save(
-                            CursoEntity.builder()
-                                    .concurso(concurso)
-                                    .nome(CURSO_PADRAO_NOME)
-                                    .nomeNormalizado(chave)
-                                    .codigo(CURSO_PADRAO_CODIGO)
-                                    .ordem(1)
-                                    .build()
-                    );
-                });
+                .orElseGet(() -> cursoRepository.save(
+                        CursoEntity.builder()
+                                .concurso(concurso)
+                                .nome(CURSO_PADRAO_NOME)
+                                .nomeNormalizado(chave)
+                                .codigo(CURSO_PADRAO_CODIGO)
+                                .ordem(1)
+                                .build()));
     }
 }
