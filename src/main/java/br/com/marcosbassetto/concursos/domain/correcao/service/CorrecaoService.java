@@ -6,7 +6,6 @@ import br.com.marcosbassetto.concursos.common.exception.ErrorCodes;
 import br.com.marcosbassetto.concursos.common.exception.ResourceNotFoundException;
 import br.com.marcosbassetto.concursos.domain.correcao.domain.ResultadoCorrecao;
 import br.com.marcosbassetto.concursos.domain.correcao.dto.CorrecaoResponse;
-import br.com.marcosbassetto.concursos.domain.correcao.dto.DesempenhoResponse;
 import br.com.marcosbassetto.concursos.domain.correcao.dto.ResultadoQuestaoResponse;
 import br.com.marcosbassetto.concursos.domain.correcao.dto.ResultadoSimuladoResponse;
 import br.com.marcosbassetto.concursos.domain.correcao.entity.CorrecaoEntity;
@@ -169,14 +168,6 @@ public class CorrecaoService {
                 .stream()
                 .map(correcaoMapper::toQuestaoResponse)
                 .toList();
-    }
-
-    /**
-     * Consolidado global do usuário, usado pelo endpoint de desempenho geral.
-     */
-    @Transactional(readOnly = true)
-    public DesempenhoResponse consultarDesempenho(Long usuarioId) {
-        return correcaoMapper.toDesempenhoResponse(correcaoRepository.findByUsuarioId(usuarioId));
     }
 
     private CorrecaoEntity corrigirQuestao(SimuladoEntity simulado,

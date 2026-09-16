@@ -24,7 +24,13 @@ public interface CorrecaoRepository extends JpaRepository<CorrecaoEntity, Long> 
             "ORDER BY c.simuladoQuestao.ordem ASC")
     List<CorrecaoEntity> findBySimuladoId(@Param("simuladoId") Long simuladoId);
 
+    /**
+     * JOIN FETCH no simulado: os agregados de desempenho leem
+     * {@code simulado.concursoId}/{@code materiaId} em loop, e sem o fetch a
+     * associação LAZY dispara uma query por correção.
+     */
     @Query("SELECT c FROM CorrecaoEntity c " +
+            "JOIN FETCH c.simulado " +
             "WHERE c.simulado.usuarioId = :usuarioId")
     List<CorrecaoEntity> findByUsuarioId(@Param("usuarioId") Long usuarioId);
 

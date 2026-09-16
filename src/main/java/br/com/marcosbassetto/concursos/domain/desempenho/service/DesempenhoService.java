@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -59,6 +60,8 @@ public class DesempenhoService {
                         LinkedHashMap::new,
                         Collectors.toList()));
 
+        Map<Long, String> nomesPorMateria = consultarNomesMaterias(porMateria.keySet());
+
         List<DesempenhoMateriaResponse> resposta = new ArrayList<>();
         porMateria.forEach((materiaId, correcoes) -> {
             int total = correcoes.size();
@@ -67,7 +70,7 @@ public class DesempenhoService {
 
             resposta.add(new DesempenhoMateriaResponse(
                     materiaId,
-                    consultarNomeMateria(materiaId),
+                    nomesPorMateria.get(materiaId),
                     total,
                     corretas,
                     incorretas,
@@ -107,10 +110,14 @@ public class DesempenhoService {
                 .count();
     }
 
-    private String consultarNomeMateria(Long materiaId) {
-        return materiaRepository.findById(materiaId)
-                .map(MateriaEntity::getNome)
-                .orElse(null);
+    /** Carrega os nomes em uma única query, evitando uma busca por matéria. */
+    private Map<Long, String> consultarNomesMaterias(Set<Long> materiaIds) {
+        if (materiaIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return materiaRepository.findAllById(materiaIds).stream()
+                .collect(Collectors.toMap(MateriaEntity::getId, MateriaEntity::getNome));
     }
 
     private double percentual(int corretas, int total) {
