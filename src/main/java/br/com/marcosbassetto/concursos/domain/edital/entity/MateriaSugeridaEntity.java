@@ -60,6 +60,15 @@ public class MateriaSugeridaEntity {
     @JoinColumn(name = "similar_a_id")
     private MateriaSugeridaEntity similarA;
 
+    /**
+     * O nome já existe em {@code materia} do concurso. Não é duplicidade
+     * dentro do edital, então mesclar com outra sugestão não resolve: o
+     * conflito é com o conteúdo confirmado.
+     */
+    @Column(name = "ja_existe_confirmada", nullable = false)
+    @Builder.Default
+    private Boolean jaExisteConfirmada = false;
+
     @CreatedDate
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;

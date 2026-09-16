@@ -18,6 +18,8 @@ import br.com.marcosbassetto.concursos.domain.edital.repository.EditalImportacao
 import br.com.marcosbassetto.concursos.domain.edital.repository.MateriaSugeridaRepository;
 import br.com.marcosbassetto.concursos.domain.edital.service.DetectorDuplicidade;
 import br.com.marcosbassetto.concursos.domain.edital.service.NormalizadorEstrutura;
+import br.com.marcosbassetto.concursos.domain.materia.repository.MateriaRepository;
+import br.com.marcosbassetto.concursos.domain.topico.repository.TopicoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,8 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +53,8 @@ public class EditalStagingService {
     private final ExtratorEditalFacade extratorFacade;
     private final NormalizadorEstrutura normalizador;
     private final DetectorDuplicidade detectorDuplicidade;
+    private final MateriaRepository materiaRepository;
+    private final TopicoRepository topicoRepository;
 
     @Transactional
     public void processar(Long concursoId) {
@@ -76,7 +82,7 @@ public class EditalStagingService {
         materiaSugeridaRepository.deleteByImportacao_Id(importacao.getId());
         materiaSugeridaRepository.flush();
 
-        gravarStaging(importacao, materias);
+        gravarStaging(importacao, materias, concursoId);
         aplicarDadosDoConcurso(concurso, estrutura.dadosConcurso());
 
         importacao.setExtraidoEm(LocalDateTime.now());
@@ -120,7 +126,8 @@ public class EditalStagingService {
      * Nada é mesclado ou removido: as flags apenas orientam a revisão.
      */
     private void gravarStaging(EditalImportacaoEntity importacao,
-                               List<MateriaExtraida> materias) {
+                               List<MateriaExtraida> materias,
+                               Long concursoId) {
         List<MateriaSugeridaEntity> persistidas = new ArrayList<>();
 
         int ordem = 1;
@@ -145,6 +152,7 @@ public class EditalStagingService {
         }
 
         sinalizarDuplicidades(persistidas);
+        sinalizarColisaoComConteudoConfirmado(persistidas, concursoId);
         materiaSugeridaRepository.saveAll(persistidas);
     }
 
@@ -168,6 +176,46 @@ public class EditalStagingService {
 
         log.debug("Staging de matérias | total={} | com duplicidade={}",
                 materias.size(), referencias.size());
+    }
+
+    /**
+     * Marca sugestões cujo nome já existe em materia/topico do concurso.
+     *
+     * Diferente da duplicidade interna: aqui não há o que mesclar no staging,
+     * o item simplesmente já está gravado. Reimportar um edital já
+     * confirmado cai exatamente neste caso.
+     */
+    private void sinalizarColisaoComConteudoConfirmado(
+            List<MateriaSugeridaEntity> materias, Long concursoId) {
+
+        Set<String> materiasGravadas = new HashSet<>(
+                materiaRepository.findNomeNormalizadoByConcursoId(concursoId));
+
+        Set<String> topicosGravados = new HashSet<>(
+                topicoRepository.findNomeNormalizadoByConcursoId(concursoId));
+
+        if (materiasGravadas.isEmpty() && topicosGravados.isEmpty()) {
+            return;
+        }
+
+        int colisoes = 0;
+
+        for (MateriaSugeridaEntity materia : materias) {
+            if (materiasGravadas.contains(materia.getNomeNormalizado())) {
+                materia.setJaExisteConfirmada(true);
+                colisoes++;
+            }
+
+            for (TopicoSugeridoEntity topico : materia.getTopicos()) {
+                if (topicosGravados.contains(topico.getNomeNormalizado())) {
+                    topico.setJaExisteConfirmado(true);
+                    colisoes++;
+                }
+            }
+        }
+
+        log.debug("Colisão com conteúdo confirmado | concursoId={} | itens={}",
+                concursoId, colisoes);
     }
 
     private void sinalizarTopicosDeCadaMateria(List<MateriaSugeridaEntity> materias) {

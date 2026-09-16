@@ -25,6 +25,7 @@ public record RevisaoEstruturaResponse(
             Boolean possivelDuplicidade,
             Long similarAId,
             String similarA,
+            Boolean jaExisteConfirmada,
             List<TopicoRevisaoResponse> topicos
     ) {
     }
@@ -36,7 +37,8 @@ public record RevisaoEstruturaResponse(
             Boolean selecionado,
             Boolean possivelDuplicidade,
             Long similarAId,
-            String similarA
+            String similarA,
+            Boolean jaExisteConfirmado
     ) {
     }
 }

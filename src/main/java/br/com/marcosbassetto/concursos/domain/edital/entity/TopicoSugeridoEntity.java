@@ -52,6 +52,11 @@ public class TopicoSugeridoEntity {
     @JoinColumn(name = "similar_a_id")
     private TopicoSugeridoEntity similarA;
 
+    /** O nome já existe em {@code topico} do concurso confirmado. */
+    @Column(name = "ja_existe_confirmado", nullable = false)
+    @Builder.Default
+    private Boolean jaExisteConfirmado = false;
+
     @CreatedDate
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;

@@ -324,6 +324,40 @@ class RevisaoEConfirmacaoIT {
                         .ResourceNotFoundException.class);
     }
 
+    @Test
+    @DisplayName("sinaliza sugestão que já existe no conteúdo confirmado")
+    void deveSinalizarColisaoComConteudoConfirmado() throws Exception {
+        Preparo preparo = preparar(EditalFixture.PADRAO);
+
+        // Primeira confirmação grava "Lingua Portuguesa" no concurso.
+        confirmarEstrutura.confirmar(preparo.concursoId, preparo.usuarioId);
+
+        // Reprocessar o mesmo edital recria o staging; agora ele colide com
+        // o que já foi confirmado.
+        stagingService.processar(preparo.concursoId);
+
+        RevisaoEstruturaResponse revisao =
+                consultarRevisao.consultar(preparo.concursoId, preparo.usuarioId);
+
+        assertThat(revisao.materias()).isNotEmpty();
+        assertThat(revisao.materias())
+                .allMatch(m -> Boolean.TRUE.equals(m.jaExisteConfirmada()));
+    }
+
+    @Test
+    @DisplayName("confirmação recusa sugestão que colide com o conteúdo confirmado")
+    void naoDeveConfirmarColidindoComConteudoConfirmado() throws Exception {
+        Preparo preparo = preparar(EditalFixture.PADRAO);
+
+        confirmarEstrutura.confirmar(preparo.concursoId, preparo.usuarioId);
+        stagingService.processar(preparo.concursoId);
+
+        assertThatThrownBy(() ->
+                confirmarEstrutura.confirmar(preparo.concursoId, preparo.usuarioId))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("já existem no conteúdo confirmado");
+    }
+
     private Preparo preparar(String texto) throws Exception {
         UsuarioEntity usuario = usuarioRepository.save(UsuarioEntity.builder()
                 .email("rev-" + UUID.randomUUID() + "@email.com")

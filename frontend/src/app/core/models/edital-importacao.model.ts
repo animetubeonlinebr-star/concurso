@@ -35,6 +35,8 @@ export interface TopicoSugerido {
   /** Id do item semelhante, quando há sinalização de duplicidade. */
   similarAId: number | null;
   similarA: string | null;
+  /** O nome já existe no conteúdo confirmado do concurso. */
+  jaExisteConfirmado: boolean;
 }
 
 export interface MateriaSugerida {
@@ -46,6 +48,8 @@ export interface MateriaSugerida {
   /** Id do item semelhante, destino natural de uma mesclagem. */
   similarAId: number | null;
   similarA: string | null;
+  /** O nome já existe no conteúdo confirmado do concurso. */
+  jaExisteConfirmada: boolean;
   topicos: TopicoSugerido[];
 }
 

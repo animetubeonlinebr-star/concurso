@@ -71,6 +71,7 @@ public class ConsultarRevisaoUseCase {
                 materia.getPossivelDuplicidade(),
                 materia.getSimilarAId(),
                 nomeSimilar(materia),
+                materia.getJaExisteConfirmada(),
                 topicos.stream().map(this::toTopicoResponse).toList());
     }
 
@@ -84,7 +85,8 @@ public class ConsultarRevisaoUseCase {
                 topico.getSelecionado(),
                 topico.getPossivelDuplicidade(),
                 topico.getSimilarAId(),
-                topico.getSimilarA() != null ? topico.getSimilarA().getNome() : null);
+                topico.getSimilarA() != null ? topico.getSimilarA().getNome() : null,
+                topico.getJaExisteConfirmado());
     }
 
     private String nomeSimilar(MateriaSugeridaEntity materia) {

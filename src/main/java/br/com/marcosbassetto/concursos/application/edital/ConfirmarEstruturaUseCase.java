@@ -19,8 +19,10 @@ import br.com.marcosbassetto.concursos.domain.edital.repository.MateriaSugeridaR
 import br.com.marcosbassetto.concursos.domain.edital.repository.TopicoSugeridoRepository;
 import br.com.marcosbassetto.concursos.domain.materia.domain.OrigemMateria;
 import br.com.marcosbassetto.concursos.domain.materia.entity.MateriaEntity;
+import br.com.marcosbassetto.concursos.domain.materia.repository.MateriaRepository;
 import br.com.marcosbassetto.concursos.domain.materia.service.MateriaService;
 import br.com.marcosbassetto.concursos.domain.topico.entity.TopicoEntity;
+import br.com.marcosbassetto.concursos.domain.topico.repository.TopicoRepository;
 import br.com.marcosbassetto.concursos.domain.topico.service.TopicoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +31,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Promove o staging revisado para a hierarquia real ({@code materia} e
@@ -53,6 +57,8 @@ public class ConfirmarEstruturaUseCase {
     private final MateriaSugeridaRepository materiaSugeridaRepository;
     private final TopicoSugeridoRepository topicoSugeridoRepository;
     private final CursoRepository cursoRepository;
+    private final MateriaRepository materiaRepository;
+    private final TopicoRepository topicoRepository;
     private final MateriaService materiaService;
     private final TopicoService topicoService;
 
@@ -92,6 +98,11 @@ public class ConfirmarEstruturaUseCase {
                     ErrorCodes.DADOS_INVALIDOS,
                     "Nenhuma matéria foi selecionada. Selecione ao menos uma para confirmar.");
         }
+
+        // O unique constraint de materia/topico seria a barreira final, mas
+        // falharia no meio da promoção. Abortar antes deixa o staging intacto
+        // e diz exatamente qual sugestão conflita.
+        validarColisoesComConteudoConfirmado(concursoId, selecionadas);
 
         CursoEntity curso = obterOuCriarCursoPadrao(concurso);
 
@@ -145,6 +156,40 @@ public class ConfirmarEstruturaUseCase {
 
         return new ConfirmacaoEstruturaResponse(
                 concursoId, materiasPersistidas, topicosPersistidos, ignoradas);
+    }
+
+    private void validarColisoesComConteudoConfirmado(
+            Long concursoId, List<MateriaSugeridaEntity> selecionadas) {
+
+        Set<String> materiasGravadas = new HashSet<>(
+                materiaRepository.findNomeNormalizadoByConcursoId(concursoId));
+        Set<String> topicosGravados = new HashSet<>(
+                topicoRepository.findNomeNormalizadoByConcursoId(concursoId));
+
+        List<String> conflitos = new ArrayList<>();
+
+        for (MateriaSugeridaEntity materia : selecionadas) {
+            if (materiasGravadas.contains(materia.getNomeNormalizado())) {
+                conflitos.add(materia.getNome());
+                continue;
+            }
+
+            List<TopicoSugeridoEntity> topicos = topicoSugeridoRepository
+                    .findByMateriaSugerida_IdOrderByOrdemAsc(materia.getId());
+
+            topicos.stream()
+                    .filter(t -> Boolean.TRUE.equals(t.getSelecionado()))
+                    .filter(t -> topicosGravados.contains(t.getNomeNormalizado()))
+                    .forEach(t -> conflitos.add(materia.getNome() + " > " + t.getNome()));
+        }
+
+        if (!conflitos.isEmpty()) {
+            throw new BusinessException(
+                    ErrorCodes.DADOS_INVALIDOS,
+                    "Estes itens já existem no conteúdo confirmado do concurso: "
+                            + String.join("; ", conflitos)
+                            + ". Desmarque-os na revisão antes de confirmar.");
+        }
     }
 
     /**

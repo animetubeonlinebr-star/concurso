@@ -32,6 +32,12 @@
               [title]="'Parece com: ' + (materia.similarA ?? 'outra matéria')">
           possível duplicidade
         </span>
+
+        <span class="badge-conflito"
+              *ngIf="materia.jaExisteConfirmada"
+              title="Já existe no conteúdo confirmado deste concurso">
+          já existe no concurso
+        </span>
       </mat-card-header>
 
       <mat-card-content>

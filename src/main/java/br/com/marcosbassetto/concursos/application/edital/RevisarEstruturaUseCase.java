@@ -121,6 +121,14 @@ public class RevisarEstruturaUseCase {
                     "Não é possível mesclar uma matéria com ela mesma.");
         }
 
+        if (Boolean.TRUE.equals(origem.getJaExisteConfirmada())) {
+            throw new BusinessException(
+                    ErrorCodes.DADOS_INVALIDOS,
+                    "\"" + origem.getNome() + "\" já existe no conteúdo confirmado do "
+                            + "concurso. Mesclar no staging não resolveria esse conflito: "
+                            + "desmarque a sugestão para não duplicar a matéria.");
+        }
+
         List<TopicoSugeridoEntity> topicosOrigem = topicoSugeridoRepository
                 .findByMateriaSugerida_IdOrderByOrdemAsc(origem.getId());
 
