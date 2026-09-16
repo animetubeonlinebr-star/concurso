@@ -41,6 +41,7 @@ public class GlobalExceptionHandler {
                 .error("Conflict")
                 .code(ex.getCode())
                 .message(ex.getMessage())
+                .details(ex.getDetails().isEmpty() ? null : ex.getDetails())
                 .build();
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
