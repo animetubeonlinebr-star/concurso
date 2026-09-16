@@ -1,0 +1,37 @@
+<div class="container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Processando edital</mat-card-title>
+      <mat-card-subtitle>
+        {{ status?.status ?? 'Carregando...' }}
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <mat-progress-bar mode="determinate" [value]="progresso"></mat-progress-bar>
+      <p class="progresso-texto">{{ progresso }}%</p>
+
+      <ul class="etapas">
+        <li *ngFor="let etapa of etapas" class="etapa-item">
+          <span class="etapa-icone">{{ getStatusIcon(etapa.status) }}</span>
+          <span class="etapa-nome" [ngClass]="etapa.status">{{ etapa.nome }}</span>
+        </li>
+      </ul>
+
+      <p class="mensagem" *ngIf="mensagem">{{ mensagem }}</p>
+
+      <div class="erro" *ngIf="erro">
+        <p>{{ erro }}</p>
+        <button mat-raised-button color="primary"
+                (click)="reprocessar()"
+                [disabled]="reprocessando">
+          {{ reprocessando ? 'Reprocessando...' : 'Reprocessar edital' }}
+        </button>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <button mat-button (click)="voltar()">Enviar outro edital</button>
+    </mat-card-actions>
+  </mat-card>
+</div>

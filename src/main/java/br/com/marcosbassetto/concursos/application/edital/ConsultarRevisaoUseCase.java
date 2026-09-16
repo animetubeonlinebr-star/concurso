@@ -69,6 +69,7 @@ public class ConsultarRevisaoUseCase {
                 materia.getOrdem(),
                 materia.getSelecionada(),
                 materia.getPossivelDuplicidade(),
+                materia.getSimilarAId(),
                 nomeSimilar(materia),
                 topicos.stream().map(this::toTopicoResponse).toList());
     }
@@ -82,6 +83,7 @@ public class ConsultarRevisaoUseCase {
                 topico.getOrdem(),
                 topico.getSelecionado(),
                 topico.getPossivelDuplicidade(),
+                topico.getSimilarAId(),
                 topico.getSimilarA() != null ? topico.getSimilarA().getNome() : null);
     }
 

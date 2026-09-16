@@ -23,6 +23,7 @@ public record RevisaoEstruturaResponse(
             Integer ordem,
             Boolean selecionada,
             Boolean possivelDuplicidade,
+            Long similarAId,
             String similarA,
             List<TopicoRevisaoResponse> topicos
     ) {
@@ -34,6 +35,7 @@ public record RevisaoEstruturaResponse(
             Integer ordem,
             Boolean selecionado,
             Boolean possivelDuplicidade,
+            Long similarAId,
             String similarA
     ) {
     }

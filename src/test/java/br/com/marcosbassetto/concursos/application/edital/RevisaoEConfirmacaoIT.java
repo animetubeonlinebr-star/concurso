@@ -111,10 +111,14 @@ class RevisaoEConfirmacaoIT {
 
         assertThat(revisao.status()).isEqualTo(StatusProcessamento.AGUARDANDO_REVISAO);
         assertThat(revisao.materias()).hasSize(2);
+        // A tela precisa do id do semelhante: é ele o destino da mesclagem.
         assertThat(revisao.materias())
                 .filteredOn(m -> Boolean.TRUE.equals(m.possivelDuplicidade()))
                 .hasSize(1)
-                .allSatisfy(m -> assertThat(m.similarA()).isNotBlank());
+                .allSatisfy(m -> {
+                    assertThat(m.similarA()).isNotBlank();
+                    assertThat(m.similarAId()).isNotNull();
+                });
     }
 
     @Test

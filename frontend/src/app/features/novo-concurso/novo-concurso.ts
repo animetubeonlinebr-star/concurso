@@ -3,8 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 
-import { ConcursoDadosService } from '../../core/services/concurso-dados.service';
-import { DadosExtraidos } from '../../core/models/dados-extraidos.model';
+import { EditalImportacaoService } from '../../core/services/edital-importacao.service';
 
 interface Etapa {
   nome: string;
@@ -35,7 +34,7 @@ export class NovoConcurso {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private concursoDados: ConcursoDadosService,
+    private editalService: EditalImportacaoService,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -111,6 +110,10 @@ export class NovoConcurso {
 
   // ===== Upload principal =====
 
+  /**
+   * O upload agora só registra a importação e devolve o concursoId. O
+   * processamento continua em background, acompanhado na tela /processando.
+   */
   upload(): void {
     if (!this.arquivoSelecionado) return;
 
@@ -120,47 +123,57 @@ export class NovoConcurso {
 
     this.atualizarEtapa(0, 'em-andamento', 'Enviando arquivo...');
 
-    const formData = new FormData();
-    formData.append('arquivo', this.arquivoSelecionado);
-
-    // Progresso visual enquanto o backend processa
+    // Progresso visual enquanto o backend recebe e persiste o arquivo
     this.simularProgresso(0, 40, 800, () => {
       this.atualizarEtapa(0, 'concluido', 'Arquivo enviado ✓');
       this.atualizarEtapa(1, 'em-andamento', 'Extraindo texto do PDF...');
     });
 
-    this.http.post<DadosExtraidos>('/api/v1/concursos/upload', formData).subscribe({
-      next: (dados) => {
-        console.log('📦 Dados recebidos do backend:', dados);
-
-        // Fecha as etapas visuais
+    this.editalService.importar(this.arquivoSelecionado).subscribe({
+      next: (resposta) => {
         this.atualizarEtapa(1, 'concluido', 'Texto extraído ✓');
-        this.atualizarEtapa(2, 'concluido', 'Dados identificados ✓');
-        this.atualizarEtapa(3, 'concluido', 'Pronto para revisar! ✓');
+        this.atualizarEtapa(2, 'em-andamento', 'Processando estrutura...');
+        this.progresso = 60;
 
-        this.progresso = 100;
-
-        // Guarda no service compartilhado
-        this.concursoDados.setDados(dados);
-
-        // Deixa a UI respirar antes de navegar
         setTimeout(() => {
           this.processando = false;
           this.cdr.detectChanges();
-          this.router.navigate(['/confirmar-concurso']);
-        }, 700);
+          this.router.navigate([
+            '/concursos', resposta.concursoId, 'processando',
+          ]);
+        }, 500);
       },
-      error: (err) => {
-        console.error('❌ Erro no upload:', err);
-        this.processando = false;
-        this.etapas.forEach((e) => {
-          if (e.status === 'em-andamento') e.status = 'erro';
-        });
-        this.mensagemProgresso = '❌ Erro ao processar o edital.';
-        this.cdr.detectChanges();
-        alert('Erro ao processar o edital. Verifique o arquivo e tente novamente.');
-      },
+      error: (err) => this.tratarErro(err),
     });
+  }
+
+  private tratarErro(err: any): void {
+    console.error('❌ Erro no upload:', err);
+
+    this.processando = false;
+    this.etapas.forEach((e) => {
+      if (e.status === 'em-andamento') e.status = 'erro';
+    });
+    this.mensagemProgresso = '❌ Erro ao enviar o edital.';
+    this.cdr.detectChanges();
+
+    // O mesmo arquivo já importado devolve 409 com o concursoId existente:
+    // a ação útil é abrir o concurso, não repetir o upload.
+    if (err?.status === 409) {
+      const concursoId = err?.error?.details?.concursoId;
+      if (concursoId) {
+        const abrir = confirm(
+          'Este edital já foi importado. Deseja abrir o concurso existente?');
+        if (abrir) {
+          this.router.navigate(['/concursos', concursoId, 'processando']);
+          return;
+        }
+        return;
+      }
+    }
+
+    alert(err?.error?.message
+      ?? 'Erro ao enviar o edital. Verifique o arquivo e tente novamente.');
   }
 
   // ===== Helpers privados =====

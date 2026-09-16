@@ -99,6 +99,12 @@ export class DetalheConcursoComponent implements OnInit {
     ]);
   }
 
+  /** A árvore completa vive em /conteudo; aqui é só o atalho. */
+  abrirConteudo(): void {
+    if (!this.concurso) return;
+    this.router.navigate(['/concursos', this.concurso.id, 'conteudo']);
+  }
+
   voltar(): void {
     this.router.navigate(['/concursos']);
   }

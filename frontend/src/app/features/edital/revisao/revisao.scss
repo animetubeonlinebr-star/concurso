@@ -1,0 +1,83 @@
+.container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.carregando {
+  display: flex;
+  justify-content: center;
+  padding: 3rem 0;
+}
+
+.contagem {
+  font-weight: 600;
+  color: #546e7a;
+}
+
+.materia-card {
+  margin-bottom: 1rem;
+}
+
+.materia-card mat-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.nome-field {
+  flex: 1;
+  min-width: 220px;
+}
+
+.badge-duplicidade {
+  background: #fff3e0;
+  color: #e65100;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.topicos {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+
+.topico-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.15rem 0;
+}
+
+.topico-nome {
+  flex: 1;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.acoes {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.erro {
+  background: #fdecea;
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.erro p {
+  color: #c62828;
+  margin: 0 0 0.5rem;
+}
+
+.vazio {
+  color: #757575;
+  font-style: italic;
+}

@@ -1,0 +1,89 @@
+<div class="container">
+  <h2>Revisão do edital</h2>
+  <p>Confira, renomeie e selecione o que deve ser salvo.</p>
+
+  <div *ngIf="carregando" class="carregando">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <div *ngIf="erro" class="erro">
+    <p>{{ erro }}</p>
+    <button mat-button (click)="carregar()">Tentar novamente</button>
+  </div>
+
+  <div *ngIf="!carregando && !erro">
+    <p class="contagem">
+      {{ selecionadas.length }} de {{ materias.length }} matérias selecionadas
+    </p>
+
+    <mat-card *ngFor="let materia of materias" class="materia-card">
+      <mat-card-header>
+        <mat-checkbox
+          [checked]="materia.selecionada"
+          (change)="toggleMateria(materia)">
+        </mat-checkbox>
+
+        <mat-form-field appearance="outline" class="nome-field">
+          <input matInput [(ngModel)]="materia.nome" name="nome-{{ materia.id }}">
+        </mat-form-field>
+
+        <span class="badge-duplicidade"
+              *ngIf="materia.possivelDuplicidade"
+              [title]="'Parece com: ' + (materia.similarA ?? 'outra matéria')">
+          possível duplicidade
+        </span>
+      </mat-card-header>
+
+      <mat-card-content>
+        <button mat-button color="primary"
+                *ngIf="materia.possivelDuplicidade"
+                (click)="mesclar(materia)">
+          Mesclar em "{{ materia.similarA }}"
+        </button>
+
+        <ul class="topicos">
+          <li *ngFor="let topico of materia.topicos" class="topico-item">
+            <mat-checkbox
+              [checked]="topico.selecionado"
+              (change)="toggleTopico(topico)">
+            </mat-checkbox>
+
+            <input class="topico-nome" [(ngModel)]="topico.nome"
+                   name="topico-{{ topico.id }}">
+
+            <button mat-icon-button
+                    (click)="removerTopico(materia, topico)"
+                    title="Remover tópico">
+              ✕
+            </button>
+          </li>
+        </ul>
+
+        <p class="vazio" *ngIf="materia.topicos.length === 0">
+          Nenhum tópico nesta matéria.
+        </p>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-button color="warn" (click)="removerMateria(materia)">
+          Remover matéria
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <p class="vazio" *ngIf="materias.length === 0">
+      Nenhuma matéria foi extraída deste edital.
+    </p>
+
+    <div class="acoes">
+      <button mat-raised-button color="primary"
+              (click)="confirmar()"
+              [disabled]="confirmando || salvando || selecionadas.length === 0">
+        {{ confirmando ? 'Salvando...' : 'Confirmar estrutura' }}
+      </button>
+      <button mat-button (click)="cancelar()" [disabled]="confirmando">
+        Cancelar
+      </button>
+    </div>
+  </div>
+</div>

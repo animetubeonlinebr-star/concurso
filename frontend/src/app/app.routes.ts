@@ -14,7 +14,9 @@ import { ExplicacaoComponent } from './features/explicacao/explicacao';
 import { AuthGuard } from './core/guards/auth.guard';
 import { MateriaDetalheComponent } from './features/materias/materia-detalhe/materia-detalhe';
 import { NovoConcurso } from './features/novo-concurso/novo-concurso';
-import { ConfirmarConcurso } from './features/confirmar-concurso/confirmar-concurso';
+import { ProcessandoComponent } from './features/edital/processando/processando';
+import { RevisaoComponent } from './features/edital/revisao/revisao';
+import { ConteudoComponent } from './features/edital/conteudo/conteudo';
 import { ListaConcursosComponent } from './features/concursos/lista-concursos/lista-concursos';
 import { DetalheConcursoComponent } from './features/concursos/detalhe-concurso/detalhe-concurso';
 
@@ -40,7 +42,9 @@ export const routes: Routes = [
       { path: 'historico', component: HistoricoComponent },
       { path: 'perfil', component: PerfilComponent },
       { path: 'novo-concurso', component: NovoConcurso },
-      { path: 'confirmar-concurso', component: ConfirmarConcurso },
+      { path: 'concursos/:concursoId/processando', component: ProcessandoComponent },
+      { path: 'concursos/:concursoId/revisao', component: RevisaoComponent },
+      { path: 'concursos/:concursoId/conteudo', component: ConteudoComponent },
       { path: 'materias/:materiaId', component: MateriaDetalheComponent },
       { path: 'concursos', component: ListaConcursosComponent },
       { path: 'concursos/:concursoId', component: DetalheConcursoComponent },

@@ -1,0 +1,46 @@
+.container {
+  max-width: 720px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.progresso-texto {
+  text-align: right;
+  font-weight: 600;
+  margin: 0.5rem 0 1rem;
+}
+
+.etapas {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.etapa-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+}
+
+.etapa-nome.em-andamento { font-weight: 600; }
+.etapa-nome.concluido { color: #2e7d32; }
+.etapa-nome.erro { color: #c62828; }
+.etapa-nome.pendente { color: #757575; }
+
+.mensagem {
+  color: #546e7a;
+  margin-top: 1rem;
+}
+
+.erro {
+  background: #fdecea;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.erro p {
+  color: #c62828;
+  margin: 0 0 0.75rem;
+}
