@@ -1,6 +1,8 @@
 package br.com.marcosbassetto.concursos.domain.concurso.entity;
 
 import br.com.marcosbassetto.concursos.common.enums.Status;
+import br.com.marcosbassetto.concursos.domain.edital.domain.StatusProcessamento;
+import br.com.marcosbassetto.concursos.domain.edital.entity.EditalImportacaoEntity;
 import br.com.marcosbassetto.concursos.domain.usuario.entity.UsuarioEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -69,12 +71,39 @@ public class ConcursoEntity {
     @Column(columnDefinition = "TEXT")
     private String textoExtraido;
 
+    /**
+     * @deprecated substituído por {@link #statusProcessamento}. Mantido
+     * sincronizado com {@code CONFIRMADO} enquanto houver consumidores.
+     */
+    @Deprecated(since = "fluxo de importação de edital")
     @Column(columnDefinition = "boolean default false")
     @Builder.Default
     private Boolean processado = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status_processamento", nullable = false, length = 30)
+    @Builder.Default
+    private StatusProcessamento statusProcessamento = StatusProcessamento.RECEBIDO;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "importacao_id")
+    private EditalImportacaoEntity importacao;
+
     public Long getUsuarioId() {
         return usuario != null ? usuario.getId() : null;
+    }
+
+    public Long getImportacaoId() {
+        return importacao != null ? importacao.getId() : null;
+    }
+
+    /**
+     * Atualiza os dois campos de controle juntos: {@code processado} é
+     * derivado de {@code statusProcessamento}, nunca fonte independente.
+     */
+    public void definirStatusProcessamento(StatusProcessamento novoStatus) {
+        this.statusProcessamento = novoStatus;
+        this.processado = StatusProcessamento.CONFIRMADO.equals(novoStatus);
     }
 
     public boolean isAtivo() {

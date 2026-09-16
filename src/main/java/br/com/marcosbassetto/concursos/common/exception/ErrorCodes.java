@@ -31,6 +31,11 @@ public final class ErrorCodes {
     public static final String ARQUIVO_MUITO_GRANDE = "ARQUIVO_MUITO_GRANDE";
     public static final String TIPO_ARQUIVO_NAO_SUPORTADO = "TIPO_ARQUIVO_NAO_SUPORTADO";
 
+    public static final String EDITAL_JA_IMPORTADO = "EDITAL_JA_IMPORTADO";
+    public static final String PROCESSAMENTO_EM_ANDAMENTO = "PROCESSAMENTO_EM_ANDAMENTO";
+    public static final String ESTRUTURA_NAO_REVISAVEL = "ESTRUTURA_NAO_REVISAVEL";
+    public static final String IMPORTACAO_NAO_ENCONTRADA = "IMPORTACAO_NAO_ENCONTRADA";
+
     public static final String IA_INDISPONIVEL = "IA_INDISPONIVEL";
     public static final String IA_TIMEOUT = "IA_TIMEOUT";
     public static final String IA_LIMITE_ATINGIDO = "IA_LIMITE_ATINGIDO";
