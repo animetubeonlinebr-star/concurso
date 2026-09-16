@@ -80,4 +80,13 @@ public interface MateriaRepository extends JpaRepository<MateriaEntity, Long> {
             "WHERE m.curso.id = :cursoId " +
             "AND NOT EXISTS (SELECT q FROM QuestaoEntity q WHERE q.materia.id = m.id)")
     List<MateriaEntity> findMateriasSemQuestoesByCursoId(@Param("cursoId") Long cursoId);
+
+    /**
+     * Nomes normalizados das matérias já persistidas no concurso. Usado
+     * para sinalizar sugestões do edital que colidem com o conteúdo real.
+     */
+    @Query("SELECT m.nomeNormalizado FROM MateriaEntity m " +
+            "JOIN m.curso c " +
+            "WHERE c.concurso.id = :concursoId")
+    List<String> findNomeNormalizadoByConcursoId(@Param("concursoId") Long concursoId);
 }

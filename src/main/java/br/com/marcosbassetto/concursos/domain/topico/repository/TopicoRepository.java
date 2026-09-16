@@ -25,4 +25,14 @@ public interface TopicoRepository extends JpaRepository<TopicoEntity, Long> {
     List<TopicoEntity> findByMateriaIdAndUsuarioId(
             @Param("materiaId") Long materiaId,
             @Param("usuarioId") Long usuarioId);
+
+    /**
+     * Nomes normalizados dos tópicos já persistidos no concurso. Usado
+     * para sinalizar sugestões do edital que colidem com o conteúdo real.
+     */
+    @Query("SELECT t.nomeNormalizado FROM TopicoEntity t " +
+            "JOIN t.materia m " +
+            "JOIN m.curso c " +
+            "WHERE c.concurso.id = :concursoId")
+    List<String> findNomeNormalizadoByConcursoId(@Param("concursoId") Long concursoId);
 }
