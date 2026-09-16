@@ -18,6 +18,10 @@ public final class ErrorCodes {
     public static final String ALTERNATIVA_INEXISTENTE = "ALTERNATIVA_INEXISTENTE";
     public static final String RESPOSTA_INVALIDA = "RESPOSTA_INVALIDA";
 
+    public static final String SIMULADO_NAO_FINALIZADO = "SIMULADO_NAO_FINALIZADO";
+    public static final String SIMULADO_NAO_CORRIGIDO = "SIMULADO_NAO_CORRIGIDO";
+    public static final String GABARITO_AUSENTE = "GABARITO_AUSENTE";
+
     public static final String INVALID_CREDENTIALS = "INVALID_CREDENTIALS";
     public static final String ACCESS_DENIED = "ACCESS_DENIED";
     public static final String TOKEN_EXPIRADO = "TOKEN_EXPIRADO";

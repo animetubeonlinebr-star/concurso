@@ -3,11 +3,14 @@ package br.com.marcosbassetto.concursos.domain.materia.service;
 import br.com.marcosbassetto.concursos.common.exception.BusinessException;
 import br.com.marcosbassetto.concursos.common.exception.ErrorCodes;
 import br.com.marcosbassetto.concursos.common.exception.ResourceNotFoundException;
+import br.com.marcosbassetto.concursos.domain.materia.dto.MateriaResponse;
 import br.com.marcosbassetto.concursos.domain.materia.entity.MateriaEntity;
 import br.com.marcosbassetto.concursos.domain.materia.repository.MateriaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -29,8 +32,17 @@ public class MateriaService {
         return materiaRepository.save(materia);
     }
 
-    public MateriaEntity buscarPorId(Long id, Long usuarioId) {
-        return materiaRepository.findByIdAndUsuarioId(id, usuarioId)
+    @Transactional(readOnly = true)
+    public MateriaResponse buscarPorId(Long id, Long usuarioId) {
+        MateriaEntity materia = materiaRepository.findByIdAndUsuarioId(id, usuarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Matéria", "id", id));
+        return MateriaResponse.from(materia);
+    }
+
+    @Transactional(readOnly = true)
+    public List<MateriaResponse> listarPorConcurso(Long concursoId, Long usuarioId) {
+        return materiaRepository.findByConcursoIdAndUsuarioId(concursoId, usuarioId).stream()
+                .map(MateriaResponse::from)
+                .toList();
     }
 }

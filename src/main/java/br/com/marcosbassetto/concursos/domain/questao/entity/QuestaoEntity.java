@@ -1,6 +1,7 @@
 package br.com.marcosbassetto.concursos.domain.questao.entity;
 
 import br.com.marcosbassetto.concursos.domain.materia.entity.MateriaEntity;
+import br.com.marcosbassetto.concursos.domain.questao.domain.Alternativa;
 import br.com.marcosbassetto.concursos.domain.questao.domain.DificuldadeQuestao;
 import br.com.marcosbassetto.concursos.domain.questao.domain.OrigemQuestao;
 import br.com.marcosbassetto.concursos.domain.questao.domain.TipoQuestao;
@@ -47,7 +48,7 @@ public class QuestaoEntity {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private List<String> alternativas;
+    private List<Alternativa> alternativas;
 
     @Column(name = "resposta_correta", nullable = false, length = 10)
     private String respostaCorreta;
@@ -137,7 +138,7 @@ public class QuestaoEntity {
         return topico != null ? topico.getNome() : null;
     }
 
-    public void atualizar(String enunciado, List<String> alternativas, String respostaCorreta,
+    public void atualizar(String enunciado, List<Alternativa> alternativas, String respostaCorreta,
                           String justificativa, DificuldadeQuestao dificuldade,
                           String referencia, Boolean ativo) {
         if (enunciado != null && !enunciado.isBlank()) {
@@ -163,13 +164,18 @@ public class QuestaoEntity {
         }
     }
 
+    /**
+     * Valida o formato da resposta conforme o tipo da questão.
+     * Não verifica se a alternativa existe — isso é responsabilidade de
+     * {@link #possuiAlternativa(String)}.
+     */
     public boolean validarResposta(String resposta) {
         if (resposta == null || resposta.isBlank()) {
             return false;
         }
 
         if (isMultiplaEscolha()) {
-            return resposta.matches("^[A-E]$");
+            return resposta.matches("^[A-Z]$");
         }
 
         if (isCertoErrado()) {
@@ -179,16 +185,20 @@ public class QuestaoEntity {
         return true;
     }
 
+    public boolean possuiAlternativa(String letra) {
+        if (letra == null || alternativas == null) {
+            return false;
+        }
+        return alternativas.stream()
+                .anyMatch(alternativa -> alternativa.possuiLetra(letra.trim()));
+    }
+
     public boolean verificarResposta(String respostaUsuario) {
-        if (respostaUsuario == null || respostaUsuario.isBlank()) {
+        if (respostaUsuario == null || respostaUsuario.isBlank() || respostaCorreta == null) {
             return false;
         }
 
-        if (isCertoErrado()) {
-            return respostaUsuario.equalsIgnoreCase(this.respostaCorreta);
-        }
-
-        return respostaUsuario.equalsIgnoreCase(this.respostaCorreta);
+        return respostaUsuario.trim().equalsIgnoreCase(respostaCorreta.trim());
     }
 
     public boolean validarAlternativas() {

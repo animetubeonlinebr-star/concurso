@@ -58,6 +58,34 @@ public class SimuladoEntity {
         questao.setSimulado(null);
     }
 
+    public boolean isCriado() {
+        return StatusSimulado.CRIADO.equals(this.status);
+    }
+
+    public boolean isEmAndamento() {
+        return StatusSimulado.EM_ANDAMENTO.equals(this.status);
+    }
+
+    public boolean isFinalizado() {
+        return StatusSimulado.FINALIZADO.equals(this.status);
+    }
+
+    public boolean isCancelado() {
+        return StatusSimulado.CANCELADO.equals(this.status);
+    }
+
+    /**
+     * Somente simulados em andamento aceitam criação ou alteração de respostas.
+     */
+    public boolean permiteResposta() {
+        return isEmAndamento();
+    }
+
+    @Version
+    @Column(nullable = false)
+    @Builder.Default
+    private Long versao = 0L;
+
     @PrePersist
     public void prePersist() {
         this.criadoEm = LocalDateTime.now();

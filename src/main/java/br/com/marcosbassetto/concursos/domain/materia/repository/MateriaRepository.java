@@ -17,6 +17,19 @@ public interface MateriaRepository extends JpaRepository<MateriaEntity, Long> {
 
     List<MateriaEntity> findByCurso_IdOrderByOrdemAsc(Long cursoId);
 
+    /**
+     * Matérias do concurso, restritas ao dono. A matéria não guarda concurso
+     * direto: o vínculo é materia -> curso -> concurso.
+     */
+    @Query("SELECT m FROM MateriaEntity m " +
+            "JOIN m.curso c " +
+            "JOIN c.concurso co " +
+            "WHERE co.id = :concursoId AND co.usuario.id = :usuarioId " +
+            "ORDER BY m.ordem ASC")
+    List<MateriaEntity> findByConcursoIdAndUsuarioId(
+            @Param("concursoId") Long concursoId,
+            @Param("usuarioId") Long usuarioId);
+
     List<MateriaEntity> findByCurso_IdAndStatusOrderByOrdemAsc(Long cursoId, Status status);
 
     List<MateriaEntity> findByCurso_Id(Long cursoId);

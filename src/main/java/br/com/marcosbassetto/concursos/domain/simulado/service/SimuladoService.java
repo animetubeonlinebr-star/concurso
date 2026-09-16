@@ -9,9 +9,13 @@ import br.com.marcosbassetto.concursos.domain.materia.entity.MateriaEntity;
 import br.com.marcosbassetto.concursos.domain.materia.repository.MateriaRepository;
 import br.com.marcosbassetto.concursos.domain.questao.entity.QuestaoEntity;
 import br.com.marcosbassetto.concursos.domain.questao.repository.QuestaoRepository;
+import br.com.marcosbassetto.concursos.domain.resposta.entity.RespostaEntity;
+import br.com.marcosbassetto.concursos.domain.resposta.repository.RespostaRepository;
 import br.com.marcosbassetto.concursos.domain.simulado.domain.StatusSimulado;
+import br.com.marcosbassetto.concursos.domain.simulado.dto.SimuladoQuestaoResponse;
 import br.com.marcosbassetto.concursos.domain.simulado.entity.SimuladoEntity;
 import br.com.marcosbassetto.concursos.domain.simulado.entity.SimuladoQuestaoEntity;
+import br.com.marcosbassetto.concursos.domain.simulado.mapper.SimuladoMapper;
 import br.com.marcosbassetto.concursos.domain.simulado.repository.SimuladoQuestaoRepository;
 import br.com.marcosbassetto.concursos.domain.simulado.repository.SimuladoRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +27,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -34,6 +41,8 @@ public class SimuladoService {
     private final ConcursoRepository concursoRepository;
     private final MateriaRepository materiaRepository;
     private final QuestaoRepository questaoRepository;
+    private final RespostaRepository respostaRepository;
+    private final SimuladoMapper simuladoMapper;
 
     @Transactional
     public SimuladoEntity criar(Long usuarioId, SimuladoEntity novoSimulado) {
@@ -47,9 +56,13 @@ public class SimuladoService {
                         novoSimulado.getConcursoId()
                 ));
 
+        // Não usar getConcursoId() derivado aqui: CursoRepository depende de
+        // findByConcursoId... e um getter derivado tornaria essas queries ambíguas.
         MateriaEntity materia = materiaRepository
                 .findById(novoSimulado.getMateriaId())
-                .filter(m -> m.getCurso().equals(concurso.getId()))
+                .filter(m -> m.getCurso() != null
+                        && m.getCurso().getConcurso() != null
+                        && concurso.getId().equals(m.getCurso().getConcurso().getId()))
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Matéria",
                         "id",
@@ -157,6 +170,38 @@ public class SimuladoService {
 
         log.info("Simulado {} finalizado para usuário {}", id, usuarioId);
         return simuladoRepository.save(simulado);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SimuladoQuestaoResponse> listarQuestoes(Long usuarioId, Long simuladoId) {
+        SimuladoEntity simulado = buscarPorId(simuladoId, usuarioId);
+
+        List<SimuladoQuestaoEntity> questoes =
+                simuladoQuestaoRepository.findBySimuladoIdOrderByOrdemAsc(simulado.getId());
+
+        if (questoes.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, QuestaoEntity> questoesPorId = questaoRepository
+                .findAllById(questoes.stream().map(SimuladoQuestaoEntity::getQuestaoId).toList())
+                .stream()
+                .collect(Collectors.toMap(QuestaoEntity::getId, Function.identity()));
+
+        Map<Long, RespostaEntity> respostasPorQuestao = respostaRepository.findBySimuladoId(simuladoId)
+                .stream()
+                .collect(Collectors.toMap(
+                        RespostaEntity::getSimuladoQuestaoId,
+                        Function.identity(),
+                        (a, b) -> a
+                ));
+
+        return questoes.stream()
+                .map(questao -> simuladoMapper.toQuestaoResponse(
+                        questao,
+                        questoesPorId.get(questao.getQuestaoId()),
+                        respostasPorQuestao.get(questao.getId())))
+                .toList();
     }
 
     @Transactional

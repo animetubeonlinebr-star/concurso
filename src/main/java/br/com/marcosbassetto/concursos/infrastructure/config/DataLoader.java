@@ -8,6 +8,7 @@ import br.com.marcosbassetto.concursos.domain.curso.entity.CursoEntity;
 import br.com.marcosbassetto.concursos.domain.curso.repository.CursoRepository;
 import br.com.marcosbassetto.concursos.domain.materia.entity.MateriaEntity;
 import br.com.marcosbassetto.concursos.domain.materia.repository.MateriaRepository;
+import br.com.marcosbassetto.concursos.domain.questao.domain.Alternativa;
 import br.com.marcosbassetto.concursos.domain.questao.domain.OrigemQuestao;
 import br.com.marcosbassetto.concursos.domain.questao.domain.TipoQuestao;
 import br.com.marcosbassetto.concursos.domain.questao.entity.QuestaoEntity;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -136,28 +138,36 @@ public class DataLoader implements CommandLineRunner {
         log.info("📝 Criando 5 questões para a matéria: {}", materia.getNome());
 
         saveQuestao(materia, "A Constituição Federal de 1988 estabelece que são direitos e garantias fundamentais:",
-                TipoQuestao.MULTIPLA_ESCOLHA, "C");
+                TipoQuestao.MULTIPLA_ESCOLHA, "C",
+                List.of(
+                        new Alternativa("A", "Somente os direitos individuais expressos no Art. 5º."),
+                        new Alternativa("B", "Somente os direitos sociais do Art. 6º."),
+                        new Alternativa("C", "Os direitos individuais, coletivos, sociais e políticos previstos na Constituição."),
+                        new Alternativa("D", "Apenas os direitos previstos em tratados internacionais.")
+                ));
 
         saveQuestao(materia, "O princípio da legalidade na Administração Pública está previsto no Art. 37 da CF/88.",
-                TipoQuestao.CERTO_ERRADO, "CERTO");
+                TipoQuestao.CERTO_ERRADO, "CERTO", null);
 
         saveQuestao(materia, "O Brasil adota a forma de governo monárquica.",
-                TipoQuestao.CERTO_ERRADO, "ERRADO");
+                TipoQuestao.CERTO_ERRADO, "ERRADO", null);
 
         saveQuestao(materia, "A separação dos Poderes no Brasil é uma cláusula pétrea?",
-                TipoQuestao.CERTO_ERRADO, "CERTO");
+                TipoQuestao.CERTO_ERRADO, "CERTO", null);
 
         saveQuestao(materia, "O STF é o guardião da Constituição.",
-                TipoQuestao.CERTO_ERRADO, "CERTO");
+                TipoQuestao.CERTO_ERRADO, "CERTO", null);
 
         log.info("✅ 5 questões criadas para a matéria {}", materia.getNome());
     }
 
-    private void saveQuestao(MateriaEntity materia, String enunciado, TipoQuestao tipo, String respostaCorreta) {
+    private void saveQuestao(MateriaEntity materia, String enunciado, TipoQuestao tipo,
+                             String respostaCorreta, List<Alternativa> alternativas) {
         QuestaoEntity questao = QuestaoEntity.builder()
                 .materia(materia)
                 .enunciado(enunciado)
                 .tipo(tipo)
+                .alternativas(alternativas)
                 .respostaCorreta(respostaCorreta)
                 .origem(OrigemQuestao.USUARIO)
                 .ativo(true)

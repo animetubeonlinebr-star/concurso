@@ -42,6 +42,11 @@ export class SimuladoService {
   }
 
   buscarResultado(id: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/simulados/${id}/resultado`);
+    // O backend expõe o resultado agregado em GET /simulados/{id}/correcao.
+    return this.http.get<any>(`${this.apiUrl}/simulados/${id}/correcao`);
+  }
+
+  corrigirSimulado(id: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/simulados/${id}/correcao`, {});
   }
 }
