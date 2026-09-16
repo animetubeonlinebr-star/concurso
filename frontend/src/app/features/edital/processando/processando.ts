@@ -53,6 +53,11 @@ export class ProcessandoComponent implements OnInit {
 
   private readonly intervaloMs = 1500;
 
+  // inject() exige contexto de injeção (inicializador de campo, construtor).
+  // iniciarPolling() roda no ngOnInit, que não é um, então a referência é
+  // resolvida aqui e apenas consumida lá.
+  private readonly destroyRef = inject(DestroyRef);
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -85,7 +90,7 @@ export class ProcessandoComponent implements OnInit {
           if (resposta === null) return false;
           return resposta.status === 'RECEBIDO' || resposta.status === 'PROCESSANDO';
         }, true),
-        takeUntilDestroyed(inject(DestroyRef)),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((resposta) => {
         if (resposta) this.aplicar(resposta);
