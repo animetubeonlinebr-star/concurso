@@ -5,10 +5,10 @@ import br.com.marcosbassetto.concursos.domain.edital.dto.DadosConcurso;
 import br.com.marcosbassetto.concursos.domain.edital.dto.MateriaExtraida;
 import br.com.marcosbassetto.concursos.domain.edital.dto.TopicoExtraido;
 import br.com.marcosbassetto.concursos.domain.edital.extractor.ExtratorEditalBase;
+import br.com.marcosbassetto.concursos.domain.edital.extractor.PadroesLista;
 import br.com.marcosbassetto.concursos.domain.edital.extractor.TextoPreProcessador;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,25 +32,9 @@ public class ExtratorDisciplinaCabecalho extends ExtratorEditalBase {
             "ANEXO\\s+III", Pattern.CASE_INSENSITIVE);
 
     /**
-     * Cabeçalho de disciplina.
-     * Aceita: "| Nome |", "## Nome", "**Nome**".
-     * Rejeita "## III. ..." e "## a) ..." (subtópicos romanos/alfabéticos).
+     * Cabeçalho de disciplina: "| Nome |", "## Nome", "**Nome**".
+     * O padrão (compartilhado) rejeita "## III. ..." e "## a) ...".
      */
-    private static final Pattern RE_CABECALHO_DISCIPLINA = Pattern.compile(
-            "^\\s*(?:"
-                    + "\\|\\s*([A-ZÁÉÍÓÚÂÊÔÃÕÇ][^|\\n]{2,80})\\s*\\|"
-                    + "|##\\s+(?!I{1,3}\\.|IV\\.|V\\.|VI{0,3}\\.|IX\\.|X{1,3}\\.|[a-z]\\)\\s)"
-                    + "([A-ZÁÉÍÓÚÂÊÔÃÕÇ][^\\n]{2,80})"
-                    + "|\\*\\*([A-ZÁÉÍÓÚÂÊÔÃÕÇ][^\\n]{2,80})\\*\\*"
-                    + ")\\s*$",
-            Pattern.MULTILINE);
-
-    private static final Pattern RE_BULLET = Pattern.compile(
-            "^\\s*[▪■◆•\\-]\\s+(.+)$", Pattern.MULTILINE);
-
-    private static final Pattern RE_ROMANO = Pattern.compile(
-            "^\\s*([IVXLCDM]+)\\.\\s+(.+)$", Pattern.MULTILINE);
-
     public ExtratorDisciplinaCabecalho(TextoPreProcessador preProcessador) {
         super(preProcessador);
     }
@@ -82,48 +66,12 @@ public class ExtratorDisciplinaCabecalho extends ExtratorEditalBase {
         String bloco = extrairBlocoConteudo(texto);
         if (bloco.isBlank()) return List.of();
 
-        List<MateriaExtraida> materias = new ArrayList<>();
-        Matcher m = RE_CABECALHO_DISCIPLINA.matcher(bloco);
-
-        int posAnterior = -1;
-        String nomeAnterior = null;
-
-        while (m.find()) {
-            if (nomeAnterior != null) {
-                String blocoMateria = bloco.substring(posAnterior, m.start());
-                materias.add(new MateriaExtraida(nomeAnterior, extrairTopicos(blocoMateria)));
-            }
-            nomeAnterior = extrairNomeGrupo(m);
-            posAnterior = m.end();
-        }
-
-        if (nomeAnterior != null) {
-            String blocoFinal = bloco.substring(posAnterior);
-            materias.add(new MateriaExtraida(nomeAnterior, extrairTopicos(blocoFinal)));
-        }
-
-        return materias;
+        return PadroesLista.extrairPorCabecalho(bloco);
     }
 
     @Override
     protected List<TopicoExtraido> extrairTopicos(String bloco) {
-        List<TopicoExtraido> topicos = new ArrayList<>();
-
-        Matcher mr = RE_ROMANO.matcher(bloco);
-        if (mr.find()) {
-            mr.reset();
-            while (mr.find()) {
-                topicos.add(new TopicoExtraido(mr.group(2).strip(), mr.group(1), null));
-            }
-        }
-
-        Matcher mb = RE_BULLET.matcher(bloco);
-        while (mb.find()) {
-            String texto = mb.group(1).strip();
-            if (texto.length() > 5) {
-                topicos.add(new TopicoExtraido(texto, null, null));
-            }
-        }
+        List<TopicoExtraido> topicos = PadroesLista.extrairTopicos(bloco);
 
         if (topicos.isEmpty()) {
             for (String linha : bloco.split("\\R")) {
@@ -169,12 +117,5 @@ public class ExtratorDisciplinaCabecalho extends ExtratorEditalBase {
     private String primeiroMatch(String fonte, Pattern p, String fallback) {
         Matcher m = p.matcher(fonte);
         return m.find() ? m.group().strip() : fallback;
-    }
-
-    private String extrairNomeGrupo(Matcher m) {
-        for (int i = 1; i <= m.groupCount(); i++) {
-            if (m.group(i) != null) return m.group(i).strip();
-        }
-        return "";
     }
 }

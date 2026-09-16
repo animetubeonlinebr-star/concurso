@@ -24,6 +24,12 @@ public abstract class ExtratorEditalBase implements ExtratorEdital {
 
     protected List<CursoExtraido> extrairCursos(String texto) {
         List<MateriaExtraida> materias = extrairMaterias(texto);
+        if (materias.isEmpty()) {
+            // Sem matérias não há curso a devolver: assim a estrutura é
+            // classificada como NAO_IDENTIFICADO em vez de parecer vazia
+            // (um curso sem matérias) e o erro passa despercebido.
+            return List.of();
+        }
         List<MateriaExtraida> enriquecidas = enriquecerComTopicos(materias, texto);
         return List.of(new CursoExtraido("Geral", null, enriquecidas));
     }
@@ -38,6 +44,13 @@ public abstract class ExtratorEditalBase implements ExtratorEdital {
                                                          String texto) {
         return materias.stream()
                 .map(m -> {
+                    // Extratores que já segmentaram os tópicos por matéria não
+                    // devem ser sobrescritos: extrairBlocoMateria é genérico
+                    // (devolve o texto inteiro) e atribuiria todo o conteúdo a
+                    // cada matéria.
+                    if (m.topicos() != null && !m.topicos().isEmpty()) {
+                        return m;
+                    }
                     String bloco = extrairBlocoMateria(texto, m.nome());
                     return new MateriaExtraida(m.nome(), extrairTopicos(bloco));
                 })
