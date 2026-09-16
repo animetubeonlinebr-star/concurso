@@ -1,10 +1,12 @@
 package br.com.marcosbassetto.concursos.api.controller;
 
 import br.com.marcosbassetto.concursos.application.edital.ConfirmarEstruturaUseCase;
+import br.com.marcosbassetto.concursos.application.edital.ConsultarConteudoUseCase;
 import br.com.marcosbassetto.concursos.application.edital.ConsultarRevisaoUseCase;
 import br.com.marcosbassetto.concursos.application.edital.RevisarEstruturaUseCase;
 import br.com.marcosbassetto.concursos.common.security.UsuarioAutenticadoResolver;
 import br.com.marcosbassetto.concursos.domain.edital.dto.ConfirmacaoEstruturaResponse;
+import br.com.marcosbassetto.concursos.domain.edital.dto.ConteudoConcursoResponse;
 import br.com.marcosbassetto.concursos.domain.edital.dto.RevisaoEstruturaRequest;
 import br.com.marcosbassetto.concursos.domain.edital.dto.RevisaoEstruturaResponse;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class EditalRevisaoController {
 
     private final ConsultarRevisaoUseCase consultarRevisao;
+    private final ConsultarConteudoUseCase consultarConteudo;
     private final RevisarEstruturaUseCase revisarEstrutura;
     private final ConfirmarEstruturaUseCase confirmarEstrutura;
     private final UsuarioAutenticadoResolver usuarioResolver;
@@ -63,5 +66,14 @@ public class EditalRevisaoController {
 
         Long usuarioId = usuarioResolver.resolverUsuarioId(auth);
         return ResponseEntity.ok(confirmarEstrutura.confirmar(id, usuarioId));
+    }
+
+    @GetMapping("/conteudo")
+    public ResponseEntity<ConteudoConcursoResponse> conteudo(
+            @PathVariable Long id,
+            Authentication auth) {
+
+        Long usuarioId = usuarioResolver.resolverUsuarioId(auth);
+        return ResponseEntity.ok(consultarConteudo.consultar(id, usuarioId));
     }
 }

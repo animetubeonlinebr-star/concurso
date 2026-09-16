@@ -7,6 +7,7 @@ import br.com.marcosbassetto.concursos.domain.concurso.entity.ConcursoEntity;
 import br.com.marcosbassetto.concursos.domain.concurso.repository.ConcursoRepository;
 import br.com.marcosbassetto.concursos.domain.edital.domain.StatusProcessamento;
 import br.com.marcosbassetto.concursos.domain.edital.dto.ConfirmacaoEstruturaResponse;
+import br.com.marcosbassetto.concursos.domain.edital.dto.ConteudoConcursoResponse;
 import br.com.marcosbassetto.concursos.domain.edital.dto.RevisaoEstruturaRequest;
 import br.com.marcosbassetto.concursos.domain.edital.dto.RevisaoEstruturaResponse;
 import br.com.marcosbassetto.concursos.domain.edital.entity.EditalImportacaoEntity;
@@ -53,6 +54,9 @@ class RevisaoEConfirmacaoIT {
     private ConfirmarEstruturaUseCase confirmarEstrutura;
 
     @Autowired
+    private ConsultarConteudoUseCase consultarConteudo;
+
+    @Autowired
     private EditalImportacaoRepository importacaoRepository;
 
     @Autowired
@@ -77,6 +81,7 @@ class RevisaoEConfirmacaoIT {
     private HashService hashService;
 
     private final List<Preparo> criados = new ArrayList<>();
+    private final List<Long> usuarios = new ArrayList<>();
 
     @AfterEach
     void limpar() {
@@ -90,7 +95,10 @@ class RevisaoEConfirmacaoIT {
             usuarioRepository.findById(preparo.usuarioId())
                     .ifPresent(usuarioRepository::delete);
         }
+        usuarios.forEach(usuarioRepository::deleteById);
+
         criados.clear();
+        usuarios.clear();
     }
 
     @Test
@@ -264,6 +272,52 @@ class RevisaoEConfirmacaoIT {
                             RevisaoEstruturaResponse.TopicoRevisaoResponse::id)
                             .doesNotContain(topicoRemovido.id());
                 });
+    }
+
+    @Test
+    @DisplayName("conteúdo consolidado reflete a árvore confirmada")
+    void deveConsultarConteudoConsolidado() throws Exception {
+        Preparo preparo = preparar(EditalFixture.PADRAO);
+
+        // Antes de confirmar não há conteúdo persistido.
+        ConteudoConcursoResponse antes =
+                consultarConteudo.consultar(preparo.concursoId, preparo.usuarioId);
+        assertThat(antes.materias()).isEmpty();
+        assertThat(antes.resumo().totalMaterias()).isZero();
+
+        confirmarEstrutura.confirmar(preparo.concursoId, preparo.usuarioId);
+
+        ConteudoConcursoResponse depois =
+                consultarConteudo.consultar(preparo.concursoId, preparo.usuarioId);
+
+        assertThat(depois.concursoId()).isEqualTo(preparo.concursoId);
+        assertThat(depois.statusProcessamento()).isEqualTo(StatusProcessamento.CONFIRMADO);
+        assertThat(depois.resumo().totalMaterias()).isEqualTo(depois.materias().size());
+        assertThat(depois.resumo().totalTopicos()).isPositive();
+
+        assertThat(depois.materias()).allSatisfy(m -> {
+            assertThat(m.origem()).isEqualTo(OrigemMateria.EDITAL.name());
+            assertThat(m.totalTopicos()).isEqualTo(m.topicos().size());
+            assertThat(m.topicos()).allMatch(t -> Boolean.TRUE.equals(t.ativo()));
+        });
+    }
+
+    @Test
+    @DisplayName("conteúdo de concurso de terceiro não é acessível")
+    void naoDeveVazarConteudoDeOutroUsuario() throws Exception {
+        Preparo preparo = preparar(EditalFixture.PADRAO);
+
+        UsuarioEntity intruso = usuarioRepository.save(UsuarioEntity.builder()
+                .email("intruso-" + UUID.randomUUID() + "@email.com")
+                .nome("Intruso")
+                .senhaHash("hash")
+                .build());
+        usuarios.add(intruso.getId());
+
+        assertThatThrownBy(() ->
+                consultarConteudo.consultar(preparo.concursoId(), intruso.getId()))
+                .isInstanceOf(br.com.marcosbassetto.concursos.common.exception
+                        .ResourceNotFoundException.class);
     }
 
     private Preparo preparar(String texto) throws Exception {
