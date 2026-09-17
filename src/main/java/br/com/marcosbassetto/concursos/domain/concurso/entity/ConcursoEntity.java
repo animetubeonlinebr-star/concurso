@@ -67,7 +67,9 @@ public class ConcursoEntity {
     @Column(name = "atualizado_em")
     private LocalDateTime atualizadoEm;
 
-    @Lob
+    // Sem @Lob: a coluna é `text`, não um large object. Com @Lob o Hibernate
+    // grava/leria um OID, e a leitura ainda estoura fora de transação
+    // (open-in-view=false) — o texto do edital vira inacessível.
     @Column(columnDefinition = "TEXT")
     private String textoExtraido;
 
