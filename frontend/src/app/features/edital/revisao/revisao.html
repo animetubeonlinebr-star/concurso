@@ -81,7 +81,7 @@
       </mat-card-actions>
     </mat-card>
 
-    <p class="vazio" *ngIf="materias.length === 0">
+    <p class="vazio" *ngIf="materias.length === 0 && !revisao?.mensagem">
       Nenhuma matéria foi extraída deste edital.
     </p>
 
