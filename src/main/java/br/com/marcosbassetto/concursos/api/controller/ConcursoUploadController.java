@@ -4,12 +4,10 @@ import br.com.marcosbassetto.concursos.application.edital.IniciarImportacaoUseCa
 import br.com.marcosbassetto.concursos.common.exception.BusinessException;
 import br.com.marcosbassetto.concursos.common.exception.ErrorCodes;
 import br.com.marcosbassetto.concursos.common.security.UsuarioAutenticadoResolver;
-import br.com.marcosbassetto.concursos.domain.edital.domain.Banca;
-import br.com.marcosbassetto.concursos.domain.edital.domain.PadraoEdital;
 import br.com.marcosbassetto.concursos.domain.edital.dto.CursoExtraido;
 import br.com.marcosbassetto.concursos.domain.edital.dto.EstruturaEditalDTO;
 import br.com.marcosbassetto.concursos.domain.edital.dto.IniciarImportacaoResponse;
-import br.com.marcosbassetto.concursos.domain.edital.extractor.ExtratorEditalFacade;
+import br.com.marcosbassetto.concursos.domain.edital.interpretacao.InterpretadorEditalFacade;
 import br.com.marcosbassetto.concursos.domain.usuario.entity.UsuarioEntity;
 import br.com.marcosbassetto.concursos.infrastructure.pdf.PdfTextExtractorService;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +29,7 @@ import java.io.IOException;
 public class ConcursoUploadController {
 
     private final PdfTextExtractorService pdfExtractor;
-    private final ExtratorEditalFacade extratorFacade;
+    private final InterpretadorEditalFacade interpretador;
     private final IniciarImportacaoUseCase iniciarImportacaoUseCase;
     private final UsuarioAutenticadoResolver usuarioResolver;
 
@@ -59,17 +57,17 @@ public class ConcursoUploadController {
     }
 
     /**
-     * Pré-visualização sem persistência: extrai e devolve a estrutura para o
-     * usuário conferir antes de decidir importar.
+     * Pré-visualização sem persistência: devolve a estrutura para o usuário
+     * conferir antes de decidir importar. O caminho que grava dados é
+     * {@code /importar}.
      *
-     * Mantido porque a tela inicial permite ajustar banca/padrão e ver o
-     * resultado na hora; o caminho que grava dados é {@code /importar}.
+     * Usa a mesma interpretação do fluxo persistido. Enquanto chamava o
+     * extrator legado, o mesmo arquivo podia mostrar uma estrutura na tela de
+     * pré-visualização e outra na revisão — e só a segunda era real.
      */
     @PostMapping("/upload")
     public ResponseEntity<EstruturaEditalDTO> uploadEdital(
-            @RequestParam("arquivo") MultipartFile file,
-            @RequestParam(value = "banca", required = false) Banca banca,
-            @RequestParam(value = "padrao", required = false) PadraoEdital padrao
+            @RequestParam("arquivo") MultipartFile file
     ) throws IOException {
 
         log.info("Recebendo upload de edital (pré-visualização): {}", file.getOriginalFilename());
@@ -85,7 +83,7 @@ public class ConcursoUploadController {
                     "Não foi possível extrair texto do PDF. O arquivo pode estar corrompido ou ser uma imagem.");
         }
 
-        EstruturaEditalDTO estrutura = extratorFacade.extrair(texto, banca, padrao);
+        EstruturaEditalDTO estrutura = interpretador.interpretar(texto);
 
         logarEstrutura(estrutura);
 
