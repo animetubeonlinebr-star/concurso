@@ -12,7 +12,6 @@ import br.com.marcosbassetto.concursos.domain.concurso.mapper.ConcursoMapper;
 import br.com.marcosbassetto.concursos.domain.concurso.repository.ConcursoRepository;
 import br.com.marcosbassetto.concursos.domain.curso.entity.CursoEntity;
 import br.com.marcosbassetto.concursos.domain.curso.repository.CursoRepository;
-import br.com.marcosbassetto.concursos.domain.edital.dto.CriarConcursoCompletoRequest;
 import br.com.marcosbassetto.concursos.domain.materia.domain.OrigemMateria;
 import br.com.marcosbassetto.concursos.domain.materia.entity.MateriaEntity;
 import br.com.marcosbassetto.concursos.domain.materia.repository.MateriaRepository;
@@ -90,56 +89,6 @@ public class ConcursoService {
                 topico.setOrdem(ordemTopico++);
                 topico.setAtivo(true);
                 topicoRepository.save(topico);
-            }
-        }
-
-        return concursoMapper.toResponse(salvo);
-    }
-
-    // ─────────────────────────────────────────────────────────
-    // CRIAR COMPLETO (a partir de edital processado)
-    // ─────────────────────────────────────────────────────────
-
-    @Transactional
-    public ConcursoResponse criarCompleto(CriarConcursoCompletoRequest request, Long usuarioId) {
-        UsuarioEntity usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário", "id", usuarioId));
-
-        ConcursoEntity concurso = ConcursoEntity.builder()
-                .nome(request.getNome())
-                .orgao(request.getOrgao())
-                .banca(request.getBanca())
-                .ano(request.getAno())
-                .usuario(usuario)
-                .status(Status.ATIVO)
-                .processado(true)
-                .criadoEm(LocalDateTime.now())
-                .atualizadoEm(LocalDateTime.now())
-                .build();
-
-        ConcursoEntity salvo = concursoRepository.save(concurso);
-
-        // Curso "Geral" implícito — balde único para matérias extraídas
-        CursoEntity cursoPadrao = obterOuCriarCursoPadrao(salvo);
-
-        for (CriarConcursoCompletoRequest.MateriaRequest me : request.getMaterias()) {
-            MateriaEntity materia = new MateriaEntity();
-            materia.setNome(me.getNome());
-            materia.setCurso(cursoPadrao);
-            materia.setOrdem(0);
-            materia.setStatus(Status.ATIVO);
-            materia.setOrigem(OrigemMateria.EDITAL);
-            MateriaEntity materiaSalva = materiaRepository.save(materia);
-
-            if (me.getTopicos() != null) {
-                for (String topicoNome : me.getTopicos()) {
-                    TopicoEntity topico = new TopicoEntity();
-                    topico.setNome(topicoNome);
-                    topico.setMateria(materiaSalva);
-                    topico.setAtivo(true);
-                    topico.setOrdem(0);
-                    topicoRepository.save(topico);
-                }
             }
         }
 
