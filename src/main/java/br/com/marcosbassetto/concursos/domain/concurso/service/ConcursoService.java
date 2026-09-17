@@ -161,7 +161,9 @@ public class ConcursoService {
     @Transactional
     public void marcarComoProcessado(Long id) {
         ConcursoEntity concurso = buscarEntidadePorId(id);
-        concurso.setProcessado(true);
+        // Delega ao setter: `processado` é derivado de `statusProcessamento`,
+        // então mexer só no primeiro deixaria o concurso num estado impossível.
+        concurso.definirStatusProcessamento(StatusProcessamento.CONFIRMADO);
         concurso.setAtualizadoEm(LocalDateTime.now());
         concursoRepository.save(concurso);
     }
