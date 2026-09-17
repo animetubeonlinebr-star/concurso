@@ -32,12 +32,14 @@ public class ConsultarProcessamentoUseCase {
         ConcursoEntity concurso = concursoRepository.findByIdAndUsuario_Id(concursoId, usuarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Concurso", "id", concursoId));
 
-        String mensagemErro = importacaoRepository.findByConcurso_Id(concursoId)
-                .map(EditalImportacaoEntity::getMensagemErro)
-                .orElse(null);
+        EditalImportacaoEntity importacao =
+                importacaoRepository.findByConcurso_Id(concursoId).orElse(null);
 
         return StatusProcessamentoResponse.de(
-                concursoId, concurso.getStatusProcessamento(), mensagemErro);
+                concursoId,
+                concurso.getStatusProcessamento(),
+                importacao != null ? importacao.getStatusExtracao() : null,
+                importacao != null ? importacao.getMensagemErro() : null);
     }
 
     /** Dispara o reprocessamento sem bloquear a resposta HTTP. */

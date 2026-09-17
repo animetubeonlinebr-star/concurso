@@ -56,6 +56,25 @@ final class EditalFixture {
             ANEXO II - CRONOGRAMA
             """;
 
+    /**
+     * Edital real sem bloco de conteúdo programático (roteiro item 9): o
+     * arquivo é um PDF válido e legível, mas não há de onde extrair matérias.
+     */
+    static final String SEM_CONTEUDO_PROGRAMATICO = """
+            EDITAL DE ABERTURA - CONCURSO PUBLICO 2026
+
+            ORGAO: Tribunal de Justica de Sao Paulo
+            BANCA: VUNESP
+            CARGO: Tecnico Judiciario
+
+            ANEXO I - DAS DISPOSICOES PRELIMINARES
+            O concurso sera regido por este edital e destina-se a preencher
+            vagas do quadro permanente.
+
+            ANEXO II - DO CRONOGRAMA
+            Inscricoes de 10 a 30 de janeiro de 2026.
+            """;
+
     static MockMultipartFile arquivo(String texto) throws Exception {
         return new MockMultipartFile(
                 "arquivo", "edital.pdf", "application/pdf", pdfComTexto(texto));

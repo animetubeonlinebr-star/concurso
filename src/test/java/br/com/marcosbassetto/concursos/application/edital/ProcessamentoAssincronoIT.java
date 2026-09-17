@@ -2,6 +2,7 @@ package br.com.marcosbassetto.concursos.application.edital;
 
 import br.com.marcosbassetto.concursos.domain.concurso.repository.ConcursoRepository;
 import br.com.marcosbassetto.concursos.domain.edital.domain.StatusProcessamento;
+import br.com.marcosbassetto.concursos.domain.edital.dto.StatusExtracao;
 import br.com.marcosbassetto.concursos.domain.edital.repository.EditalImportacaoRepository;
 import br.com.marcosbassetto.concursos.domain.edital.repository.MateriaSugeridaRepository;
 import br.com.marcosbassetto.concursos.domain.usuario.entity.UsuarioEntity;
@@ -70,6 +71,30 @@ class ProcessamentoAssincronoIT {
     }
 
     @Test
+    @DisplayName("edital sem conteúdo programático não termina como sucesso mudo")
+    void deveSinalizarExtracaoNaoIdentificada() throws Exception {
+        UsuarioEntity usuario = criarUsuario();
+
+        var resposta = iniciarImportacao.importar(
+                usuario, EditalFixture.arquivo(EditalFixture.SEM_CONTEUDO_PROGRAMATICO));
+        concursos.add(resposta.concursoId());
+
+        aguardar(() -> importacaoRepository.findByConcurso_Id(resposta.concursoId())
+                .map(i -> StatusProcessamento.AGUARDANDO_REVISAO.equals(i.getStatus()))
+                .orElse(false));
+
+        var importacao = importacaoRepository
+                .findByConcurso_Id(resposta.concursoId()).orElseThrow();
+
+        assertThat(importacao.getStatusExtracao())
+                .as("sem bloco de conteúdo programático a extração não é PROCESSADO")
+                .isEqualTo(StatusExtracao.NAO_IDENTIFICADO);
+        assertThat(materiaSugeridaRepository
+                .findByImportacao_IdOrderByOrdemAsc(importacao.getId()))
+                .isEmpty();
+    }
+
+    @Test
     @DisplayName("o upload commita, dispara o processamento e chega em AGUARDANDO_REVISAO")
     void deveProcessarAposOCommit() throws Exception {
         UsuarioEntity usuario = criarUsuario();
@@ -99,6 +124,7 @@ class ProcessamentoAssincronoIT {
                 .findByImportacao_IdOrderByOrdemAsc(importacao.getId()))
                 .as("a estrutura extraída precisa existir no staging de revisão")
                 .isNotEmpty();
+        assertThat(importacao.getStatusExtracao()).isEqualTo(StatusExtracao.PROCESSADO);
     }
 
     private void aguardar(BooleanSupplier condicao) throws InterruptedException {

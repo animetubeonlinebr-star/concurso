@@ -12,6 +12,7 @@ public record RevisaoEstruturaResponse(
         Long concursoId,
         Long importacaoId,
         StatusProcessamento status,
+        StatusExtracao statusExtracao,
         DadosConcurso dadosConcurso,
         List<MateriaRevisaoResponse> materias,
         String mensagem

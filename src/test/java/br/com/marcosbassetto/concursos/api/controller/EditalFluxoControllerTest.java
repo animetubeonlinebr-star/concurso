@@ -12,6 +12,7 @@ import br.com.marcosbassetto.concursos.domain.edital.dto.ConfirmacaoEstruturaRes
 import br.com.marcosbassetto.concursos.domain.edital.dto.ConteudoConcursoResponse;
 import br.com.marcosbassetto.concursos.domain.edital.dto.RevisaoEstruturaRequest;
 import br.com.marcosbassetto.concursos.domain.edital.dto.RevisaoEstruturaResponse;
+import br.com.marcosbassetto.concursos.domain.edital.dto.StatusExtracao;
 import br.com.marcosbassetto.concursos.domain.edital.dto.StatusProcessamentoResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -78,7 +79,8 @@ class EditalFluxoControllerTest {
     @DisplayName("GET /processamento devolve o status resolvendo o usuário do token")
     void deveConsultarProcessamento() {
         StatusProcessamentoResponse esperado =
-                StatusProcessamentoResponse.de(1L, StatusProcessamento.PROCESSANDO, null);
+                StatusProcessamentoResponse.de(
+                        1L, StatusProcessamento.PROCESSANDO, StatusExtracao.PROCESSADO, null);
         when(consultarProcessamento.consultar(1L, 3L)).thenReturn(esperado);
 
         ResponseEntity<StatusProcessamentoResponse> resposta =
@@ -104,7 +106,8 @@ class EditalFluxoControllerTest {
     @DisplayName("GET /revisao resolve o usuário autenticado")
     void deveConsultarRevisao() {
         RevisaoEstruturaResponse esperado = new RevisaoEstruturaResponse(
-                1L, 42L, StatusProcessamento.AGUARDANDO_REVISAO, null, List.of(), null);
+                1L, 42L, StatusProcessamento.AGUARDANDO_REVISAO, StatusExtracao.PROCESSADO,
+                null, List.of(), null);
         when(consultarRevisao.consultar(1L, 3L)).thenReturn(esperado);
 
         assertThat(revisaoController.revisao(1L, authentication).getBody())
@@ -116,7 +119,8 @@ class EditalFluxoControllerTest {
     void deveAtualizarRevisao() {
         RevisaoEstruturaRequest request = new RevisaoEstruturaRequest(List.of());
         RevisaoEstruturaResponse esperado = new RevisaoEstruturaResponse(
-                1L, 42L, StatusProcessamento.AGUARDANDO_REVISAO, null, List.of(), null);
+                1L, 42L, StatusProcessamento.AGUARDANDO_REVISAO, StatusExtracao.PROCESSADO,
+                null, List.of(), null);
         when(consultarRevisao.consultar(1L, 3L)).thenReturn(esperado);
 
         ResponseEntity<RevisaoEstruturaResponse> resposta =

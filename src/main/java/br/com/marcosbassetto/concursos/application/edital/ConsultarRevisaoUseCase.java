@@ -50,11 +50,24 @@ public class ConsultarRevisaoUseCase {
                 concursoId,
                 importacao.getId(),
                 importacao.getStatus(),
+                importacao.getStatusExtracao(),
                 null,
                 materiasResponse,
-                materias.isEmpty()
-                        ? "Nenhuma matéria foi extraída deste edital. Revise o arquivo enviado."
-                        : null);
+                mensagemDe(importacao, materias.isEmpty()));
+    }
+
+    /**
+     * A extração vazia é reportada pelo próprio status de extração; a revisão
+     * só precisa de um aviso quando não há nada para revisar.
+     */
+    private String mensagemDe(EditalImportacaoEntity importacao, boolean semMaterias) {
+        if (semMaterias) {
+            return "Nenhuma matéria foi extraída deste edital. Revise o arquivo enviado.";
+        }
+        return importacao.getStatusExtracao() != null
+                && importacao.getStatusExtracao().exigeAtencao()
+                ? importacao.getStatusExtracao().getMensagem()
+                : null;
     }
 
     private RevisaoEstruturaResponse.MateriaRevisaoResponse toMateriaResponse(

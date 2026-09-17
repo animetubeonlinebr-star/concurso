@@ -51,6 +51,6 @@ public class EditalImportacaoController {
         // PROCESSANDO já na resposta: o frontend retoma o polling sem
         // precisar esperar a primeira volta do executor.
         return ResponseEntity.accepted().body(
-                StatusProcessamentoResponse.de(id, StatusProcessamento.PROCESSANDO, null));
+                StatusProcessamentoResponse.de(id, StatusProcessamento.PROCESSANDO, null, null));
     }
 }

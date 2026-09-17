@@ -9,6 +9,7 @@ import br.com.marcosbassetto.concursos.domain.edital.domain.StatusProcessamento;
 import br.com.marcosbassetto.concursos.domain.edital.dto.DadosConcurso;
 import br.com.marcosbassetto.concursos.domain.edital.dto.EstruturaEditalDTO;
 import br.com.marcosbassetto.concursos.domain.edital.dto.MateriaExtraida;
+import br.com.marcosbassetto.concursos.domain.edital.dto.StatusExtracao;
 import br.com.marcosbassetto.concursos.domain.edital.dto.TopicoExtraido;
 import br.com.marcosbassetto.concursos.domain.edital.entity.EditalImportacaoEntity;
 import br.com.marcosbassetto.concursos.domain.edital.entity.MateriaSugeridaEntity;
@@ -85,6 +86,13 @@ public class EditalStagingService {
         gravarStaging(importacao, materias, concursoId);
         aplicarDadosDoConcurso(concurso, estrutura.dadosConcurso());
 
+        // A qualidade da extração é registrada separadamente: sem isso, um
+        // edital sem conteúdo programático viraria "sucesso" com zero matérias.
+        StatusExtracao statusExtracao = estrutura.status() != null
+                ? estrutura.status()
+                : StatusExtracao.PROCESSADO;
+
+        importacao.setStatusExtracao(statusExtracao);
         importacao.setExtraidoEm(LocalDateTime.now());
         importacao.setMensagemErro(null);
         importacao.setStatus(StatusProcessamento.AGUARDANDO_REVISAO);
@@ -93,9 +101,10 @@ public class EditalStagingService {
         concurso.definirStatusProcessamento(StatusProcessamento.AGUARDANDO_REVISAO);
         concursoRepository.save(concurso);
 
-        log.info("Edital processado | concursoId={} | materias={} | topicos={}",
+        log.info("Edital processado | concursoId={} | materias={} | topicos={} | extracao={}",
                 concursoId, materias.size(),
-                materias.stream().mapToInt(m -> m.topicos().size()).sum());
+                materias.stream().mapToInt(m -> m.topicos().size()).sum(),
+                statusExtracao);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

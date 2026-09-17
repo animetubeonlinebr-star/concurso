@@ -2,6 +2,7 @@ package br.com.marcosbassetto.concursos.domain.edital.entity;
 
 import br.com.marcosbassetto.concursos.domain.concurso.entity.ConcursoEntity;
 import br.com.marcosbassetto.concursos.domain.edital.domain.StatusProcessamento;
+import br.com.marcosbassetto.concursos.domain.edital.dto.StatusExtracao;
 import br.com.marcosbassetto.concursos.domain.usuario.entity.UsuarioEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -62,6 +63,15 @@ public class EditalImportacaoEntity {
 
     @Column(name = "mensagem_erro", columnDefinition = "TEXT")
     private String mensagemErro;
+
+    /**
+     * Qualidade do que a extração conseguiu ler. Independente de {@code status}:
+     * um edital sem bloco de conteúdo programático fica em
+     * {@code AGUARDANDO_REVISAO} com {@code NAO_IDENTIFICADO}, não em sucesso mudo.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status_extracao", length = 30)
+    private StatusExtracao statusExtracao;
 
     @Column(name = "extraido_em")
     private LocalDateTime extraidoEm;

@@ -13,20 +13,35 @@ public record StatusProcessamentoResponse(
         Long concursoId,
         StatusProcessamento status,
         int progresso,
+        StatusExtracao statusExtracao,
         String mensagem,
         String mensagemErro
 ) {
 
     public static StatusProcessamentoResponse de(Long concursoId,
                                                  StatusProcessamento status,
+                                                 StatusExtracao statusExtracao,
                                                  String mensagemErro) {
         return new StatusProcessamentoResponse(
                 concursoId,
                 status,
                 progressoDe(status),
-                status != null ? status.getDescricao() : null,
+                statusExtracao,
+                mensagemDe(status, statusExtracao),
                 mensagemErro
         );
+    }
+
+    /**
+     * O aviso da extração tem precedência sobre a descrição do ciclo de vida:
+     * dizer "aguardando revisão" para um edital de onde nada foi extraído é o
+     * silêncio que este campo existe para eliminar.
+     */
+    private static String mensagemDe(StatusProcessamento status, StatusExtracao extracao) {
+        if (extracao != null && extracao.exigeAtencao()) {
+            return extracao.getMensagem();
+        }
+        return status != null ? status.getDescricao() : null;
     }
 
     private static int progressoDe(StatusProcessamento status) {
