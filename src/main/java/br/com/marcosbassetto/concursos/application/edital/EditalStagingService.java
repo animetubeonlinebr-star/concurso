@@ -14,7 +14,7 @@ import br.com.marcosbassetto.concursos.domain.edital.dto.TopicoExtraido;
 import br.com.marcosbassetto.concursos.domain.edital.entity.EditalImportacaoEntity;
 import br.com.marcosbassetto.concursos.domain.edital.entity.MateriaSugeridaEntity;
 import br.com.marcosbassetto.concursos.domain.edital.entity.TopicoSugeridoEntity;
-import br.com.marcosbassetto.concursos.domain.edital.extractor.ExtratorEditalFacade;
+import br.com.marcosbassetto.concursos.domain.edital.interpretacao.InterpretadorEditalFacade;
 import br.com.marcosbassetto.concursos.domain.edital.repository.EditalImportacaoRepository;
 import br.com.marcosbassetto.concursos.domain.edital.repository.MateriaSugeridaRepository;
 import br.com.marcosbassetto.concursos.domain.edital.service.DetectorDuplicidade;
@@ -51,7 +51,7 @@ public class EditalStagingService {
     private final ConcursoRepository concursoRepository;
     private final EditalImportacaoRepository importacaoRepository;
     private final MateriaSugeridaRepository materiaSugeridaRepository;
-    private final ExtratorEditalFacade extratorFacade;
+    private final InterpretadorEditalFacade interpretador;
     private final NormalizadorEstrutura normalizador;
     private final DetectorDuplicidade detectorDuplicidade;
     private final MateriaRepository materiaRepository;
@@ -76,7 +76,7 @@ public class EditalStagingService {
                     "O texto do edital não está disponível para processamento.");
         }
 
-        EstruturaEditalDTO estrutura = normalizador.normalizar(extratorFacade.extrair(texto));
+        EstruturaEditalDTO estrutura = normalizador.normalizar(interpretador.interpretar(texto));
         List<MateriaExtraida> materias = estrutura.materiasDoPrimeiroCurso();
 
         // Reprocessar não pode acumular o staging do processamento anterior.
