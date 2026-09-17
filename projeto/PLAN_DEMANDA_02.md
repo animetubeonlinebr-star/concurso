@@ -66,6 +66,22 @@ Matérias e tópicos ainda não confirmados não poluem a hierarquia real:
 `hash_sha256` é `VARCHAR(64)` (e não `CHAR(64)`) porque o Hibernate está em
 `ddl-auto=validate` e compara o tipo JDBC da coluna com o da entidade.
 
+### Qualidade da extração (`status_extracao`, migration `V8`)
+
+`status_processamento` descreve o **ciclo de vida**, não o que a extração
+conseguiu ler. Um edital sem bloco de conteúdo programático chegava a
+`AGUARDANDO_REVISAO` com zero matérias: o `StatusExtracao` calculado pelo
+extrator (`PROCESSADO`, `PARCIAL`, `BAIXA_CONFIANCA`, `NAO_IDENTIFICADO`) era
+descartado, e o usuário via um sucesso vazio.
+
+Por isso `edital_importacao.status_extracao` guarda essa qualidade em separado:
+
+- a tela `/processando` mostra a mensagem do `StatusExtracao` quando ele não é
+  `PROCESSADO`, com precedência sobre a descrição do ciclo de vida;
+- a tela `/revisao` exibe o mesmo aviso em um banner;
+- `PARCIAL` surgiu na prática em edital em que órgão/ano não foram
+  identificados, mesmo com matérias extraídas.
+
 ### Persistido
 
 - `concurso.status_processamento` — estado do fluxo.
@@ -132,7 +148,7 @@ A mesclagem é sempre **explícita**: duplicatas são apenas sinalizadas
 
 ## Testes
 
-Backend (`./gradlew test`) — 79 testes, 0 falhas. Inclui:
+Backend (`./gradlew test`) — 81 testes, 0 falhas. Inclui:
 
 - `HashServiceTest` — vetores SHA-256 conhecidos, determinismo, formato hex,
   falha de leitura → `ARQUIVO_INVALIDO`.
@@ -142,9 +158,12 @@ Backend (`./gradlew test`) — 79 testes, 0 falhas. Inclui:
 - `IniciarImportacaoUseCaseTest` — hash, deduplicação e estado inicial,
   contra PostgreSQL real.
 - `RevisaoEConfirmacaoIT` — revisão e confirmação ponta a ponta.
+- `ProcessamentoAssincronoIT` — upload commita → processamento assíncrono
+  → `AGUARDANDO_REVISAO`; e edital sem conteúdo programático →
+  `NAO_IDENTIFICADO` (roteiro item 9).
 - `DetectorDuplicidadeTest`, `NormalizadorEstrutura`, extratores por banca.
 
-Frontend (`npm test`) — 13 arquivos, 37 testes, com specs para as três telas.
+Frontend (`npm test`) — 13 arquivos, 38 testes, com specs para as três telas.
 
 ## Limpeza (02.9)
 
