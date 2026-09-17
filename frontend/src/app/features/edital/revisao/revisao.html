@@ -16,6 +16,10 @@
       {{ selecionadas.length }} de {{ materias.length }} matérias selecionadas
     </p>
 
+    <div class="aviso-extracao" *ngIf="revisao?.mensagem">
+      <p>{{ revisao?.mensagem }}</p>
+    </div>
+
     <mat-card *ngFor="let materia of materias" class="materia-card">
       <mat-card-header>
         <mat-checkbox

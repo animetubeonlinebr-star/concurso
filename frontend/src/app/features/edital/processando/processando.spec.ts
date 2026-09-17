@@ -26,6 +26,7 @@ describe('ProcessandoComponent', () => {
       concursoId: 7,
       status,
       progresso: 50,
+      statusExtracao: 'PROCESSADO',
       mensagem: 'ok',
       mensagemErro: null,
       ...extra,

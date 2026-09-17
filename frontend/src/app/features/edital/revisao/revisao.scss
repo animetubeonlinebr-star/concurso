@@ -82,6 +82,19 @@
   font-style: italic;
 }
 
+.aviso-extracao {
+  background: #fff8e1;
+  border-left: 4px solid #f9a825;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.aviso-extracao p {
+  color: #795548;
+  margin: 0;
+}
+
 .badge-conflito {
   background: #ffebee;
   color: #c62828;

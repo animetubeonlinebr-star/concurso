@@ -58,6 +58,7 @@ describe('RevisaoComponent', () => {
     concursoId: 7,
     importacaoId: 42,
     status: 'AGUARDANDO_REVISAO',
+    statusExtracao: 'PROCESSADO',
     mensagem: null,
     dadosConcurso: {
       nome: 'PF 2026',
@@ -122,6 +123,18 @@ describe('RevisaoComponent', () => {
     expect(component.carregando).toBe(false);
     expect(component.materias.length).toBe(1);
     expect(component.erro).toBeNull();
+  });
+
+  it('avisa o usuário quando a extração não identificou o conteúdo', () => {
+    montar({
+      ...revisao([]),
+      statusExtracao: 'NAO_IDENTIFICADO',
+      mensagem: 'Nenhuma matéria foi extraída: o edital pode não ter bloco de conteúdo programático.',
+    });
+
+    const aviso: HTMLElement | null =
+      fixture.nativeElement.querySelector('.aviso-extracao');
+    expect(aviso?.textContent).toContain('Nenhuma matéria foi extraída');
   });
 
   it('expõe erro de carregamento', () => {

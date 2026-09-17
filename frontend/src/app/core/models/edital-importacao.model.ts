@@ -9,6 +9,18 @@ export type StatusProcessamento =
   | 'CONFIRMADO'
   | 'ERRO';
 
+/**
+ * Qualidade da extração, independente do ciclo de vida: um edital sem bloco
+ * de conteúdo programático fica em `AGUARDANDO_REVISAO` com
+ * `NAO_IDENTIFICADO`, e a tela precisa avisar em vez de mostrar revisão vazia.
+ */
+export type StatusExtracao =
+  | 'PROCESSADO'
+  | 'PARCIAL'
+  | 'BAIXA_CONFIANCA'
+  | 'NAO_IDENTIFICADO'
+  | 'ERRO';
+
 /** Resposta de POST /concursos/importar. */
 export interface IniciarImportacaoResponse {
   concursoId: number;
@@ -22,6 +34,7 @@ export interface StatusProcessamentoResponse {
   concursoId: number;
   status: StatusProcessamento;
   progresso: number;
+  statusExtracao: StatusExtracao | null;
   mensagem: string | null;
   mensagemErro: string | null;
 }
@@ -58,6 +71,7 @@ export interface RevisaoEstrutura {
   concursoId: number;
   importacaoId: number;
   status: StatusProcessamento;
+  statusExtracao: StatusExtracao | null;
   dadosConcurso: DadosConcursoExtraido | null;
   materias: MateriaSugerida[];
   mensagem: string | null;
