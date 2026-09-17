@@ -132,11 +132,13 @@ A mesclagem é sempre **explícita**: duplicatas são apenas sinalizadas
 
 ## Testes
 
-Backend (`./gradlew test`) — 76 testes, 0 falhas. Inclui:
+Backend (`./gradlew test`) — 79 testes, 0 falhas. Inclui:
 
 - `HashServiceTest` — vetores SHA-256 conhecidos, determinismo, formato hex,
   falha de leitura → `ARQUIVO_INVALIDO`.
 - `EditalFluxoControllerTest` — endpoints do fluxo e origem do `usuarioId`.
+- `ConcursoServiceIT` — cadastro manual nasce `CONFIRMADO` e `processado`
+  permanece derivado de `statusProcessamento`.
 - `IniciarImportacaoUseCaseTest` — hash, deduplicação e estado inicial,
   contra PostgreSQL real.
 - `RevisaoEConfirmacaoIT` — revisão e confirmação ponta a ponta.

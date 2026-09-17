@@ -12,6 +12,7 @@ import br.com.marcosbassetto.concursos.domain.concurso.mapper.ConcursoMapper;
 import br.com.marcosbassetto.concursos.domain.concurso.repository.ConcursoRepository;
 import br.com.marcosbassetto.concursos.domain.curso.entity.CursoEntity;
 import br.com.marcosbassetto.concursos.domain.curso.repository.CursoRepository;
+import br.com.marcosbassetto.concursos.domain.edital.domain.StatusProcessamento;
 import br.com.marcosbassetto.concursos.domain.materia.domain.OrigemMateria;
 import br.com.marcosbassetto.concursos.domain.materia.entity.MateriaEntity;
 import br.com.marcosbassetto.concursos.domain.materia.repository.MateriaRepository;
@@ -60,10 +61,13 @@ public class ConcursoService {
                 .descricao(request.descricao())
                 .usuario(usuario)
                 .status(Status.ATIVO)
-                .processado(true)
                 .criadoEm(LocalDateTime.now())
                 .atualizadoEm(LocalDateTime.now())
                 .build();
+
+        // Cadastro manual não passa por extração: já nasce confirmado.
+        // O setter mantém `processado` derivado de `statusProcessamento`.
+        concurso.definirStatusProcessamento(StatusProcessamento.CONFIRMADO);
 
         ConcursoEntity salvo = concursoRepository.save(concurso);
 
