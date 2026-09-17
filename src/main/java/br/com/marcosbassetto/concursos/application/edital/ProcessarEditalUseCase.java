@@ -4,9 +4,10 @@ import br.com.marcosbassetto.concursos.common.exception.BusinessException;
 import br.com.marcosbassetto.concursos.config.AsyncConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * Orquestra o processamento do edital em background.
@@ -23,15 +24,18 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class ProcessarEditalUseCase {
-
     private final EditalStagingService stagingService;
-
+    /**
+     * Só dispara depois do commit do upload. Um {@code @EventListener} comum
+     * roda dentro da transação de {@code importar}: o concurso ainda não está
+     * visível para a thread assíncrona, que falha com "concurso não
+     * encontrado" e deixa a importação presa em RECEBIDO.
+     */
     @Async(AsyncConfig.EDITAL_EXECUTOR)
-    @EventListener(ImportacaoIniciadaEvent.class)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void aoIniciarImportacao(ImportacaoIniciadaEvent evento) {
         processar(evento.concursoId());
     }
-
     public void processar(Long concursoId) {
         try {
             stagingService.processar(concursoId);
@@ -40,7 +44,6 @@ public class ProcessarEditalUseCase {
             registrarErro(concursoId, e);
         }
     }
-
     /**
      * O status ERRO é gravado em transação própria: se usasse a transação
      * revertida do processamento, o registro que explica a falha ao usuário
@@ -54,7 +57,6 @@ public class ProcessarEditalUseCase {
                     concursoId, falhaAoRegistrar);
         }
     }
-
     private String mensagemDe(Exception e) {
         if (e instanceof BusinessException be) {
             return be.getMessage();
