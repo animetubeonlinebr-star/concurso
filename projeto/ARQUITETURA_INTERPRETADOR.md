@@ -22,12 +22,13 @@ upload, staging, revisão e confirmação).
 | 02.0.8 | Template Method                       | ✅ concluído  |
 | 02.0.9 | Escolha do segundo edital real         | ✅ concluído  |
 | 02.0.10 | Implementação do segundo perfil       | ✅ concluído  |
-| 02.0.11 | Comparação A × B                     | ← próxima     |
-| 02.0.12 | Decisão sobre Abstract Factory        | depois        |
-| 02.0.13 | Árvore tipada de UnidadeEdital        | depois        |
-| 02.0.14 | Revisão do modelo Concurso/Curso      | depois        |
-| 02.0.15 | Persistência final                    | depois        |
-| 02.0.16 | Testes E2E dos perfis                 | depois        |
+| 02.0.11 | Matriz arquitetural dos formatos     | ✅ concluído  |
+| 02.0.12 | Consolidar características           | ← próxima     |
+| 02.0.13 | Confirmar/rejeitar Abstract Factory  | depois        |
+| 02.0.14 | Árvore tipada de UnidadeEdital       | depois        |
+| 02.0.15 | Revisar Concurso/Curso/Matéria/Tópico | depois       |
+| 02.0.16 | Persistência final                   | depois        |
+| 02.0.17 | E2E completo dos 23 PDFs             | depois        |
 
 ## Perfil A (atual)
 

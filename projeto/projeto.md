@@ -15173,14 +15173,15 @@ confirmação está em `projeto/PLAN_DEMANDA_02.md`.
 | 02.0.6  | Facade + Quality Validator       | ✅ concluído |
 | 02.0.7  | Status da extração               | ✅ concluído |
 | 02.0.8  | Template Method                  | ✅ concluído |
-| 02.0.9  | Escolha do segundo edital real   | ✅ concluído |
-| 02.0.10 | Implementação do segundo perfil  | ✅ concluído |
-| 02.0.11 | Comparação A × B                 | ← próxima    |
-| 02.0.12 | Decisão sobre Abstract Factory   | depois       |
-| 02.0.13 | Árvore tipada de UnidadeEdital   | depois       |
-| 02.0.14 | Revisão do modelo Concurso/Curso | depois       |
-| 02.0.15 | Persistência final               | depois       |
-| 02.0.16 | Testes E2E dos perfis            | depois       |
+| 02.0.9  | Escolha do segundo edital real     | ✅ concluído |
+| 02.0.10 | Implementação do segundo perfil    | ✅ concluído |
+| 02.0.11 | Matriz arquitetural dos formatos   | ✅ concluído |
+| 02.0.12 | Consolidar características         | ← próxima    |
+| 02.0.13 | Confirmar/rejeitar Abstract Factory | depois      |
+| 02.0.14 | Árvore tipada de UnidadeEdital     | depois       |
+| 02.0.15 | Revisar Concurso/Curso/Matéria/Tópico | depois    |
+| 02.0.16 | Persistência final                 | depois       |
+| 02.0.17 | E2E completo dos 23 PDFs           | depois       |
 
 ### 18.0.1 Arquitetura do interpretador
 
@@ -15426,6 +15427,62 @@ ExtratorDisciplinaCabecalho, ExtratorEditalFactory, ExtratorEditalFacade,
 ExtratorEditalBase) **não é referenciado por nenhuma classe de produção** —
 é código morto anterior à reescrita da interpretação, mantido apenas com seus
 testes.
+
+### 18.0.10 Matriz arquitetural dos formatos (02.0.11)
+
+Análise dos 23 editais depois da 02.0.10, para decidir o que permanece genérico
+e o que varia por formato. A medição está em `projeto/MATRIZ_FORMATOS.md`;
+`MatrizCapacidadesTest` grava `build/matriz-capacidades.tsv`.
+
+**Os dois eixos são independentes.** Âncora do bloco (como o documento declara
+o conteúdo) e leitura de disciplina (como escreve as disciplinas) são decisões
+separadas, e a matriz prova: `TITULO_EXPLICITO` aparece com as duas leituras, e
+`INLINE` aparece com as duas âncoras.
+
+| Âncora | Leitura | Documentos |
+| ------ | ------- | ---------- |
+| TITULO_EXPLICITO | LINHA_PROPRIA | 15 |
+| TITULO_NUMERADO | INLINE | 2 |
+| TITULO_EXPLICITO | INLINE | 2 |
+| NENHUMA | SEM_BLOCO | 4 |
+
+Não existe "Perfil B" como bloco único — existe uma âncora e uma leitura,
+combináveis. O TRANSPETRO é a prova: âncora igual à dos outros 15, leitura
+diferente; não caberia em nenhum dos dois perfis.
+
+**Nove documentos casam duas âncoras.** Em todos, `TITULO_EXPLICITO` e
+`AGRUPAMENTO_CONHECIMENTOS`. A ordem de preferência é comportamento, não
+detalhe: com o agrupamento primeiro, esses nove seriam cortados no meio do
+conteúdo.
+
+**A hierarquia declarada nunca é usada.** `hierarquia()` é consumido apenas em
+um `log.info`; `marcadoresSecao()`, `marcadoresItem()` e `tratarCargoComoNivel()`
+não têm consumidor. Ou seja, existem duas descrições de hierarquia no sistema,
+e a do perfil é a que não vale — evidência direta a favor da árvore tipada.
+
+**O gargalo de acoplamento.** `CustoDoQuartoFormatoTest` mede onde um formato
+novo encosta. Tudo absorve por composição, exceto `EditalProfileClassifier`,
+que duplica o conhecimento das âncoras: decide `ehDocumentoDeConteudo` com os
+próprios padrões antes de as âncoras serem consultadas. Enquanto ele não
+reconhecer a forma, o documento vira `SEM_CONTEUDO` e a âncora nunca roda.
+
+**Abstract Factory: rejeitada de novo, com medição.** `DocumentModel`,
+normalização, validação e status são idênticos nos 23 documentos. As variações
+são independentes entre si, não conjuntas — que é o oposto do que uma família
+de objetos exige. Decisão registrada, a ser revisitada só se aparecerem duas
+famílias que precisem variar juntas.
+
+**Comportamentos aceitos e limitações**, registrados como teste:
+TRANSPETRO lê disciplinas reais (melhoria verificada) e seu bloco não é fechado
+por anexo com subtítulo (inofensivo, medido); Ilhabela tem o agrupamento do
+cargo anterior vazando para o seguinte; Ponta Porã nº1 tem título partido em
+duas linhas pelo PDF.
+
+**Recomendação para a 02.0.12:** o classificador deve perguntar às âncoras
+registradas em vez de manter os próprios padrões; os campos mortos do perfil
+saem ou ganham consumidor; e `hierarquia()` deve parar de ser tratada como
+descrição do comportamento. Não corrigir as limitações agora — elas são
+evidência para a árvore tipada, não defeitos a remendar caso a caso.
 
 ## 18.1 Objetivo
 

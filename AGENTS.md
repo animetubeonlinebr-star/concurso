@@ -83,6 +83,31 @@ qualquer mudança de extração antes de afirmar que melhorou:
 cat build/diagnostico-perfis.tsv
 ```
 
+`MatrizCapacidadesTest` complementa: grava `build/matriz-capacidades.tsv` com
+**qual âncora** e **qual leitura de disciplina** cada documento usou, e quanto
+a leitura concorrente teria produzido. O diagnóstico diz o resultado; a matriz
+diz o caminho — e é o caminho que revela a arquitetura:
+
+```bash
+./gradlew test --tests "*MatrizCapacidadesTest*"
+cat build/matriz-capacidades.tsv
+```
+
+Âncora e leitura são eixos **independentes**: `TITULO_EXPLICITO` aparece com as
+duas leituras, e `INLINE` com as duas âncoras. Não modele "perfil" como bloco
+único. Nove dos 23 documentos casam duas âncoras — a ordem de preferência é
+comportamento.
+
+`EditalProfileClassifier` é o único ponto de acoplamento para um formato novo:
+ele duplica o conhecimento das âncoras e decide `ehDocumentoDeConteudo` antes de
+elas serem consultadas. Enquanto não reconhecer a forma, o documento vira
+`SEM_CONTEUDO` e a âncora nunca roda. Os campos `hierarquia`, `marcadoresSecao`,
+`marcadoresItem` e `tratarCargoComoNivel` do `EditalProfile` não têm consumidor
+— a hierarquia real é produzida linha a linha pelo classificador e pelo
+extrator.
+
+Análise completa em `projeto/MATRIZ_FORMATOS.md`.
+
 Estado medido: 16 dos 23 PDFs extraem estrutura; 10 terminam em
 `NAO_IDENTIFICADO` — 4 porque o documento realmente não tem seção de conteúdo
 programático (comunicado, errata, PDF sem camada de texto), 3 por serem

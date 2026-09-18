@@ -182,6 +182,53 @@ class PerfilBExtracaoTest {
         assertThat(doPrimeiroCargo).isNotEmpty();
     }
 
+    @Test
+    @DisplayName("Ilhabela: limitação conhecida — agrupamento do cargo anterior vaza para o seguinte")
+    void ilhabelaLimitacaoConhecida() throws Exception {
+        // Comportamento aceito, não desejado, e medido com precisão.
+        //
+        // O documento separa os cargos em blocos de agrupamento:
+        //
+        //   CARGO: 301 – ADVOGADO
+        //   LÍNGUA PORTUGUESA:
+        //   CONHECIMENTOS ESPECÍFICOS:
+        //   Direito Administrativo:
+        //   ...
+        //   CARGO: 302 – CONTROLE INTERNO     <- novo cargo
+        //   LÍNGUA PORTUGUESA:
+        //
+        // O agrupamento "CONHECIMENTOS ESPECÍFICOS:" abre um bloco que continua
+        // válido no cargo 302 (o edital lista as disciplinas do cargo seguinte
+        // sob o mesmo bloco), mas o caminho fica com a ordem invertida:
+        // [CONHECIMENTOS ESPECÍFICOS:, CARGO: 302] em vez de
+        // [CARGO: 302, CONHECIMENTOS ESPECÍFICOS:].
+        //
+        // A causa é o caminho ser uma lista na ordem de aparição, sem noção de
+        // profundidade. Corrigir isso pede a árvore tipada, que é justamente a
+        // 02.0.14 — por isso a limitação fica registrada, não remendada aqui.
+        var materias = extrair(ILHABELA);
+
+        var doCargo302 = materias.stream()
+                .filter(m -> m.caminho().stream().anyMatch(c -> c.contains("302")))
+                .toList();
+
+        assertThat(doCargo302).isNotEmpty();
+
+        assertThat(doCargo302)
+                .as("o agrupamento aparece antes do cargo, invertendo a hierarquia")
+                .allSatisfy(m -> assertThat(m.caminho().get(0))
+                        .startsWith("CONHECIMENTOS"));
+
+        // O cargo 301, cujo bloco abre na ordem natural, sai correto.
+        var doCargo301 = materias.stream()
+                .filter(m -> m.caminho().stream().anyMatch(c -> c.contains("301")))
+                .toList();
+
+        assertThat(doCargo301)
+                .as("quando o cargo vem antes do agrupamento, a ordem está certa")
+                .allSatisfy(m -> assertThat(m.caminho().get(0)).startsWith("CARGO"));
+    }
+
     // ------------------------------------------------------------- helper
 
     private SegmentadorEdital.SegmentoEdital blocoDe(String arquivo) throws Exception {
