@@ -20,7 +20,7 @@ class ExtratorFallbackTest {
 
     @BeforeEach
     void setUp() {
-        extrator = new ExtratorFallback(new TextoPreProcessador(), new SegmentadorEdital());
+        extrator = new ExtratorFallback(new TextoPreProcessador(), SegmentadorEdital.comAncorasPadrao());
     }
 
     @Test

@@ -15174,8 +15174,8 @@ confirmação está em `projeto/PLAN_DEMANDA_02.md`.
 | 02.0.7  | Status da extração               | ✅ concluído |
 | 02.0.8  | Template Method                  | ✅ concluído |
 | 02.0.9  | Escolha do segundo edital real   | ✅ concluído |
-| 02.0.10 | Implementação do segundo perfil  | ← próxima    |
-| 02.0.11 | Comparação A × B                 | depois       |
+| 02.0.10 | Implementação do segundo perfil  | ✅ concluído |
+| 02.0.11 | Comparação A × B                 | ← próxima    |
 | 02.0.12 | Decisão sobre Abstract Factory   | depois       |
 | 02.0.13 | Árvore tipada de UnidadeEdital   | depois       |
 | 02.0.14 | Revisão do modelo Concurso/Curso | depois       |
@@ -15321,6 +15321,111 @@ chegam ao usuário como aviso na tela de processamento e como banner na revisão
 Um PDF estranho tem três desfechos honestos: extrair o que deu, avisar o que
 não deu, ou declarar que não há conteúdo programático. O que ele nunca faz é
 devolver matérias inventadas como se fossem sucesso.
+
+### 18.0.7 Implementação do Perfil B
+
+A leitura do Perfil B entrou por três pontos, sem nenhuma regra por nome de
+arquivo, órgão ou banca — o que decide é a forma como o documento escreve.
+
+**1. Âncora do bloco.** O reconhecimento do início deixou de ser um regex único
+e virou `AncoraBlocoConteudo`, com três implementações por ordem de
+especificidade: `AncoraTituloExplicito` (ANEXO … CONTEÚDO PROGRAMÁTICO),
+`AncoraAgrupamentoConhecimentos` (CONHECIMENTOS GERAIS) e `AncoraTituloNumerado`
+(`15.2.4 CONHECIMENTOS GERAIS`). O número é contexto; o nome do agrupamento
+depois dele é a evidência — é o que impede `1. DISPOSIÇÕES PRELIMINARES` de
+virar conteúdo programático.
+
+**2. Fim do bloco.** O bloco ancorado em título numerado não é fechado por um
+anexo; ele termina na mudança de capítulo (`FIM_CAPITULO_NUMERADO`, nível raso
+como `16 DAS DISPOSIÇÕES GERAIS`). Sem isso o bloco seguiria até o fim do
+documento e o capítulo seguinte viraria conteúdo.
+
+**3. Disciplina inline.** `ExtratorDisciplinas` escolhe entre as duas leituras
+por qual reconhece mais disciplinas no próprio documento, com empate para a
+leitura por linha própria, que é a validada. `ExtratorDisciplinasInline`
+reconhece a disciplina como prefixo (`NOME: 1 item`) e como nome sozinho
+seguido de dois-pontos, com estas recusas, todas necessárias na prática:
+
+| Recusa | Por quê |
+| ------ | ------- |
+| nome com pontuação de frase (`; `, `. `) | separa `DIREITO ADMINISTRATIVO` de uma linha de conteúdo que termina em dois-pontos |
+| nome longo (mais de 60 caracteres) | idem: linha de conteúdo, não título |
+| nome em caixa mista com conteúdo na mesma linha | `Seguridade social: origem e evolução` é frase, não disciplina |
+| medida (`TOTAL: 45 pontos`, `Duração: 4 horas`) | tem forma de disciplina, mas o número é quantidade — 197 linhas assim existem no corpus |
+| rótulo de unidade e agrupamento (`CARGO:`, `CONHECIMENTOS GERAIS:`) | organizam o documento, não são disciplina |
+| seção (`REFERÊNCIAS BIBLIOGRÁFICAS`, `ANEXO`) | encerra o conteúdo; sem isso a bibliografia entrava como matéria |
+
+O sub-nível não vira tópico: `(?<![\d.])(\d{1,3})\s+` exige item de topo, então
+`1.1` e `2.5.3` ficam dentro do item `1` e `2`. O número vira código do tópico,
+nunca parte do nome.
+
+O caminho da matéria é hierárquico: uma unidade de nível 1 nova substitui a
+anterior do mesmo tipo, e o agrupamento acumula —
+`CARGO → CONHECIMENTOS ESPECÍFICOS → MATÉRIA`.
+
+### 18.0.8 Medição da 02.0.10
+
+Mesma medição dos 23 PDFs, antes e depois:
+
+| | Antes | Depois |
+| --- | --- | --- |
+| Extraem estrutura | 13 | **16** |
+| Perfil B (Ponta Porã nº1, nº2, Ilhabela) | `NAO_IDENTIFICADO`, 0 matérias | `PROCESSADO`, 31/4/12 matérias |
+| Regressões | — | **0** |
+
+Os três documentos do Perfil B:
+
+| Documento | Antes | Depois |
+| --------- | ----- | ------ |
+| Ponta Porã nº1 | NAO_IDENTIFICADO / 0 / 0 | PROCESSADO / 31 / 355 |
+| Ponta Porã nº2 | NAO_IDENTIFICADO / 0 / 0 | PROCESSADO / 4 / 10 |
+| Ilhabela | NAO_IDENTIFICADO / 0 / 0 | PROCESSADO / 12 / 12 |
+
+Um quarto documento mudou — `edital_n_4_completo` (TRANSPETRO). Não estava
+previsto, mas a comparação mostra que é melhora: antes a leitura por linha
+própria produzia como matérias os campos de um formulário
+(`CONTEÚDOS PROGRAMÁTICOS`, `PETROBRAS TRANSPORTE S.A - TRANSPETRO`,
+`Inscrições. 12/08 a 14/09/2026`, e datas soltas como `09/09/2026`); agora
+produz as disciplinas reais (`LÍNGUA PORTUGUESA`, `LÍNGUA INGLESA`,
+`ADMINISTRAÇÃO FINANCEIRA E ORÇAMENTÁRIA`). O status sobe de `PARCIAL` para
+`PROCESSADO`.
+
+Os outros 19 documentos mantiveram perfil, status, matérias e tópicos
+idênticos. As 10 linhas que continuam em `NAO_IDENTIFICADO` são: 4 documentos
+realmente sem conteúdo programático, 3 processos seletivos FUNCAMP sem anexo de
+programa, e 3 que o limite desta etapa não cobriu.
+
+### 18.0.9 Limites conhecidos desta etapa
+
+Três coisas ficaram fora, de propósito:
+
+1. **Título de disciplina quebrado em duas linhas.** Em Ponta Porã nº1, o
+   título `REALIDADE ÉTNICA, SOCIAL, HISTÓRICA, GEOGRÁFICA, CULTURAL, POLÍTICA
+   E ECONÔMICA DO MUNICÍPIO DE PONTA PORÃ/MS` (109 caracteres) é impresso em
+   duas linhas pelo PDF, e a segunda começa em `DE PONTA PORÃ/MS : 1 …`. Nenhum
+   limite de tamanho resolve isso: o nome está fisicamente partido. Resolver
+   exige juntar a linha de continuação antes de classificar — é a mesma
+   reconstrução de parágrafo que a leitura por linha própria já faz para o
+   conteúdo, aplicada ao título. Ficou fora porque não estava entre as três
+   variações comprovadas e mexer nisso afeta o classificador compartilhado.
+
+2. **Forma `GRUPO: DISCIPLINA. conteúdo`.** Em Ilhabela, o segundo cargo tem
+   `CONHECIMENTOS ESPECÍFICOS: Direito Constitucional: Constituição: conceito e
+   espécies…` — agrupamento, disciplina e conteúdo na mesma linha, com três
+   dois-pontos. As 3 matérias desse trecho ficaram sem unidade no caminho. É
+   uma quarta variação, vista em um documento só.
+
+3. **`ExtratorDisciplinasInline` não é um interpretador de itens completo.** O
+   conteúdo de um item que contém dois-pontos pode absorver o título seguinte
+   quando o título é justamente o que foi partido (caso 1). Nos outros dois
+   documentos isso não ocorre.
+
+Também foi observado, e não corrigido por estar fora do escopo: o pacote
+`domain/edital/extractor` (ExtratorFCC, ExtratorPadrao, ExtratorFallback,
+ExtratorDisciplinaCabecalho, ExtratorEditalFactory, ExtratorEditalFacade,
+ExtratorEditalBase) **não é referenciado por nenhuma classe de produção** —
+é código morto anterior à reescrita da interpretação, mantido apenas com seus
+testes.
 
 ## 18.1 Objetivo
 

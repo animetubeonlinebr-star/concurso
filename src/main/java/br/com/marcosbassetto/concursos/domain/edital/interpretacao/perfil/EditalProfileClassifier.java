@@ -38,6 +38,19 @@ public class EditalProfileClassifier {
     private static final Pattern CONHECIMENTOS = Pattern.compile(
             "^\\s*CONHECIMENTOS\\s+(GERAIS|ESPECIFICOS|BASICOS|COMPLEMENTARES)\\s*$");
 
+    /**
+     * Agrupamento de conhecimentos numerado dentro de um capítulo, como
+     * "15.2.4 CONHECIMENTOS GERAIS".
+     *
+     * Editais que não dedicam um anexo ao conteúdo programático declaram o
+     * agrupamento dentro do capítulo das provas. Sem reconhecer esta forma, o
+     * documento era classificado como sem conteúdo e as matérias ficavam
+     * invisíveis — mesmo estando lá.
+     */
+    private static final Pattern CONHECIMENTOS_NUMERADO = Pattern.compile(
+            "^\\s*\\d{1,2}(?:\\.\\d{1,2}){1,3}\\s+(?:D[AEOS]\\s+)?"
+                    + "CONHECIMENTOS\\s+(GERAIS|ESPECIFICOS|BASICOS|COMPLEMENTARES)[^\\n]*$");
+
     private static final Pattern CARGO = Pattern.compile(
             "^\\s*(?:CARGO|EMPREGO|FUNCAO)\\s*\\d*\\s*[:\\-]\\s*\\S.*");
 
@@ -126,7 +139,8 @@ public class EditalProfileClassifier {
         for (String linha : texto.split("\\R")) {
             String normalizada = normalizar(linha);
             if (BLOCO_CONTEUDO.matcher(normalizada).matches()
-                    || CONHECIMENTOS.matcher(normalizada).matches()) {
+                    || CONHECIMENTOS.matcher(normalizada).matches()
+                    || CONHECIMENTOS_NUMERADO.matcher(normalizada).matches()) {
                 return true;
             }
         }

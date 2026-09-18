@@ -4,6 +4,8 @@ import br.com.marcosbassetto.concursos.domain.edital.dto.EstruturaEditalDTO;
 import br.com.marcosbassetto.concursos.domain.edital.dto.MateriaExtraida;
 import br.com.marcosbassetto.concursos.domain.edital.interpretacao.classificacao.ClassificadorUnidadeEdital;
 import br.com.marcosbassetto.concursos.domain.edital.interpretacao.classificacao.MontadorHierarquia;
+import br.com.marcosbassetto.concursos.domain.edital.interpretacao.disciplina.ExtratorDisciplinas;
+import br.com.marcosbassetto.concursos.domain.edital.interpretacao.disciplina.ExtratorDisciplinasInline;
 import br.com.marcosbassetto.concursos.domain.edital.interpretacao.documento.DocumentModel;
 import br.com.marcosbassetto.concursos.domain.edital.interpretacao.estrategia.EstrategiaBlocoConteudo;
 import br.com.marcosbassetto.concursos.domain.edital.interpretacao.estrategia.EstrategiaDocumentoSemConteudo;
@@ -42,8 +44,10 @@ class DiagnosticoPerfisReaisTest {
     private final EditalProfileClassifier classificadorPerfil = new EditalProfileClassifier();
     private final EstrategiaFactory estrategiaFactory = new EstrategiaFactory(List.of(
             new EstrategiaBlocoConteudo(
-                    new SegmentadorEdital(),
-                    new MontadorHierarquia(new ClassificadorUnidadeEdital())),
+                    SegmentadorEdital.comAncorasPadrao(),
+                    new ExtratorDisciplinas(
+                            new MontadorHierarquia(new ClassificadorUnidadeEdital()),
+                            new ExtratorDisciplinasInline())),
             new EstrategiaDocumentoSemConteudo()));
 
     private final InterpretadorEditalFacade facade = new InterpretadorEditalFacade(

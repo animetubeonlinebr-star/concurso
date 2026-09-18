@@ -21,7 +21,7 @@ class ExtratorPadraoTest {
 
     @BeforeEach
     void setUp() {
-        extrator = new ExtratorPadrao(new TextoPreProcessador(), new SegmentadorEdital());
+        extrator = new ExtratorPadrao(new TextoPreProcessador(), SegmentadorEdital.comAncorasPadrao());
     }
 
     @Test

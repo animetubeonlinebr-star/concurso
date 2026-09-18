@@ -20,7 +20,7 @@ class ExtratorEditalFactoryTest {
     @BeforeEach
     void setUp() {
         TextoPreProcessador pre = new TextoPreProcessador();
-        SegmentadorEdital segmentador = new SegmentadorEdital();
+        SegmentadorEdital segmentador = SegmentadorEdital.comAncorasPadrao();
 
         factory = new ExtratorEditalFactory(
                 new ExtratorFCC(),

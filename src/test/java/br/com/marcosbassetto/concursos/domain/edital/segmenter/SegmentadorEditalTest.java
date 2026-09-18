@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class SegmentadorEditalTest {
 
-    private final SegmentadorEdital segmentador = new SegmentadorEdital();
+    private final SegmentadorEdital segmentador = SegmentadorEdital.comAncorasPadrao();
 
     @Test
     @DisplayName("corta na forma simples do cabeçalho")

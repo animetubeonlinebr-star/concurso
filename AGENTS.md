@@ -83,11 +83,17 @@ qualquer mudança de extração antes de afirmar que melhorou:
 cat build/diagnostico-perfis.tsv
 ```
 
-Estado medido: 13 dos 23 PDFs extraem estrutura; 10 terminam em
+Estado medido: 16 dos 23 PDFs extraem estrutura; 10 terminam em
 `NAO_IDENTIFICADO` — 4 porque o documento realmente não tem seção de conteúdo
-programático (comunicado, errata, PDF sem camada de texto) e 6 porque o formato
-existe mas o perfil A não sabe ancorá-lo. O edital da Câmara de Ponta Porã
-(`4D1A8250…`) é o Perfil B escolhido — falha com zero matérias porque o bloco de
-conteúdo é ancorado em título numerado (`15.2.4 CONHECIMENTOS GERAIS`), a
-disciplina é prefixo inline (`NOME: 1 item.`) e o nível 1 é `CARGO n:`. Decisões
-registradas em `projeto/ARQUITETURA_INTERPRETADOR.md`.
+programático (comunicado, errata, PDF sem camada de texto), 3 por serem
+processos seletivos FUNCAMP sem anexo de programa, e 3 ainda não cobertos.
+
+O formato do Perfil B (âncora em título numerado, disciplina inline, `CARGO n:`)
+aparece em três editais e é lido por `ExtratorDisciplinasInline`, acionado
+quando a leitura por linha própria não reconhece mais disciplinas. Limites
+conhecidos em `projeto/ARQUITETURA_INTERPRETADOR.md` §18.0.9 — em especial, um
+título de disciplina quebrado em duas linhas pelo PDF ainda não é remontado.
+
+O pacote `domain/edital/extractor` (ExtratorFCC, ExtratorPadrao,
+ExtratorFallback, ExtratorEditalFactory e companhia) é código morto: nenhuma
+classe de produção o referencia.

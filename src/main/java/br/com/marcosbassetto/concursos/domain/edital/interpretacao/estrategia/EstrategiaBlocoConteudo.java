@@ -1,6 +1,6 @@
 package br.com.marcosbassetto.concursos.domain.edital.interpretacao.estrategia;
 
-import br.com.marcosbassetto.concursos.domain.edital.interpretacao.classificacao.MontadorHierarquia;
+import br.com.marcosbassetto.concursos.domain.edital.interpretacao.disciplina.ExtratorDisciplinas;
 import br.com.marcosbassetto.concursos.domain.edital.interpretacao.documento.DocumentModel;
 import br.com.marcosbassetto.concursos.domain.edital.interpretacao.perfil.EditalProfile;
 import br.com.marcosbassetto.concursos.domain.edital.interpretacao.rascunho.EstruturaRascunho;
@@ -20,6 +20,10 @@ import java.util.List;
  * disciplinas de cronograma, de cláusulas de contrato e de formulários — o
  * documento inteiro virava estrutura. Quando não há seção, a resposta correta
  * é não haver matérias.
+ *
+ * A leitura das disciplinas dentro do bloco é delegada ao
+ * {@link ExtratorDisciplinas}, que reconhece tanto a disciplina em linha
+ * própria quanto a disciplina inline. Esta estratégia não sabe a diferença.
  */
 @Slf4j
 @Component
@@ -29,7 +33,7 @@ public class EstrategiaBlocoConteudo implements EstrategiaInterpretacaoEdital {
     private static final String PERFIL = "GENERICO";
 
     private final SegmentadorEdital segmentador;
-    private final MontadorHierarquia montador;
+    private final ExtratorDisciplinas extratorDisciplinas;
 
     @Override
     public String perfilSuportado() {
@@ -76,7 +80,7 @@ public class EstrategiaBlocoConteudo implements EstrategiaInterpretacaoEdital {
                     "A seção de conteúdo programático está vazia.");
         }
 
-        List<MateriaRascunho> materias = montador.montar(documento, bloco);
+        List<MateriaRascunho> materias = extratorDisciplinas.extrair(documento, bloco);
 
         log.debug("EstrategiaBlocoConteudo | materias={}", materias.size());
 
