@@ -16,6 +16,7 @@ import br.com.marcosbassetto.concursos.domain.edital.segmenter.SegmentadorEdital
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -24,9 +25,14 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Diagnóstico temporário: mede o que o interpretador atual faz com cada edital
- * real de {@code PDF_edital_teste}. Não é teste de aceitação — serve para
- * escolher objetivamente o segundo perfil.
+ * Medição do comportamento do interpretador sobre os editais reais de
+ * {@code PDF_edital_teste}.
+ *
+ * Não é teste de aceitação: é o instrumento que produz a matriz objetiva usada
+ * para escolher o segundo perfil (02.0.9) e para comparar A × B (02.0.11). A
+ * saída vai para {@code build/diagnostico-perfis.tsv}, um arquivo por
+ * execução, para que a comparação entre duas versões do interpretador seja
+ * feita sobre números, não sobre impressão.
  */
 class DiagnosticoPerfisReaisTest {
 
@@ -48,10 +54,15 @@ class DiagnosticoPerfisReaisTest {
 
     @Test
     void medirPerfis() throws Exception {
-        List<Path> pdfs = Files.list(DIRETORIO)
-                .filter(p -> p.toString().endsWith(".pdf"))
-                .sorted(Comparator.comparing(Path::toString))
-                .toList();
+        List<Path> pdfs = Files.isDirectory(DIRETORIO)
+                ? Files.list(DIRETORIO)
+                        .filter(p -> p.toString().endsWith(".pdf"))
+                        .sorted(Comparator.comparing(Path::toString))
+                        .toList()
+                : List.of();
+
+        Assumptions.assumeFalse(pdfs.isEmpty(),
+                "PDF_edital_teste ausente: nada a medir neste ambiente.");
 
         StringBuilder tsv = new StringBuilder();
         tsv.append("pdf\tperfil\thierarquia\tstatus\tmaterias\ttopicos\tcargo\tarea\tcurso\tcabecalhos\tamostra\n");

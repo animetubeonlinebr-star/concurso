@@ -15155,6 +15155,173 @@ O `Edital` será responsável pelo arquivo e pelos dados extraídos do documento
 
 # 18 - Edital
 
+## 18.0 Sequência da Demanda 02
+
+A interpretação de edital foi construída em etapas, cada uma validada antes da
+seguinte. A análise que sustenta as decisões está em
+`projeto/ARQUITETURA_INTERPRETADOR.md`; o fluxo de upload, staging, revisão e
+confirmação está em `projeto/PLAN_DEMANDA_02.md`.
+
+| Etapa   | Item                             | Status       |
+| ------- | -------------------------------- | ------------ |
+| 02.0    | Arquitetura do interpretador     | ✅ concluído |
+| 02.0.1  | DocumentModel                    | ✅ concluído |
+| 02.0.2  | EditalProfile                    | ✅ concluído |
+| 02.0.3  | Classifier                       | ✅ concluído |
+| 02.0.4  | Strategy                         | ✅ concluído |
+| 02.0.5  | Factory Method                   | ✅ concluído |
+| 02.0.6  | Facade + Quality Validator       | ✅ concluído |
+| 02.0.7  | Status da extração               | ✅ concluído |
+| 02.0.8  | Template Method                  | ✅ concluído |
+| 02.0.9  | Escolha do segundo edital real   | ✅ concluído |
+| 02.0.10 | Implementação do segundo perfil  | ← próxima    |
+| 02.0.11 | Comparação A × B                 | depois       |
+| 02.0.12 | Decisão sobre Abstract Factory   | depois       |
+| 02.0.13 | Árvore tipada de UnidadeEdital   | depois       |
+| 02.0.14 | Revisão do modelo Concurso/Curso | depois       |
+| 02.0.15 | Persistência final               | depois       |
+| 02.0.16 | Testes E2E dos perfis            | depois       |
+
+### 18.0.1 Arquitetura do interpretador
+
+O interpretador responde, nesta ordem, às perguntas que antes estavam
+misturadas dentro do serviço de staging:
+
+```text
+"que tipo de edital é este?"      → EditalProfileClassifier
+"como este edital organiza?"      → EditalProfile + HierarchyDefinition
+"o que extrair?"                  → EstrategiaInterpretacaoEdital (Strategy)
+"como mapear para a estrutura?"   → MontadorHierarquia
+"o resultado é confiável?"        → AvaliadorQualidadeExtracao
+```
+
+Componentes:
+
+| Componente                    | Papel                                                         |
+| ----------------------------- | ------------------------------------------------------------- |
+| `DocumentModel`               | PDF já virou texto, ainda sem decisão sobre matéria/tópico     |
+| `EditalProfile`               | Tipo do documento, níveis que usa, marcadores de seção e item  |
+| `HierarchyDefinition`         | Lista de níveis, do topo para a base                           |
+| `TipoUnidadeEdital`           | Papel de cada linha: matéria, tópico, seção, cargo, cabeçalho  |
+| `ClassificadorUnidadeEdital`  | Decide o papel de uma linha, exigindo evidência positiva       |
+| `MontadorHierarquia`          | Constrói a árvore a partir das linhas classificadas            |
+| `EstrategiaFactory`           | Escolhe a estratégia pelo perfil (Factory Method)              |
+| `InterpretadorEditalTemplate` | Esqueleto invariante da interpretação (Template Method)        |
+| `InterpretadorEditalFacade`   | Ponto de entrada; especializa só a leitura do conteúdo         |
+| `AvaliadorQualidadeExtracao`  | Calcula o `StatusExtracao`                                     |
+| `SegmentadorEdital`           | Recorta o bloco de conteúdo programático                       |
+
+A saída é sempre `EstruturaEditalDTO`: a API, o staging e o frontend não
+precisam saber que a interpretação foi reescrita.
+
+### 18.0.2 Template Method
+
+A medição de 23 editais reais mostrou que a interpretação tem uma parte que
+nunca muda e uma que muda. `InterpretadorEditalTemplate` fixa a primeira:
+
+```text
+interpretar(texto)                    [final]
+  ├── texto vazio → NAO_IDENTIFICADO
+  ├── DocumentModel.de(texto)
+  ├── classificador.classificar(documento)
+  ├── interpretarConteudo(documento, perfil)   [abstrato — único passo variável]
+  ├── extratorMetadados.extrair(documento)
+  ├── avaliador.avaliar(rascunho, dadosCompletos)
+  └── montarResposta(dados, rascunho, status)  [Curso "Geral" implícito]
+```
+
+A ordem é `final` de propósito. Um perfil novo não pode pular a avaliação de
+qualidade nem deixar de extrair metadados — foi exatamente o que aconteceu
+antes, quando o status calculado pelo extrator era descartado e um edital sem
+conteúdo chegava à revisão como sucesso vazio.
+
+`InterpretadorEditalFacade` é a implementação de produção; sua especialização
+tem três linhas: escolher a estratégia pelo perfil e aplicá-la.
+
+### 18.0.3 Escolha do segundo edital real
+
+`DiagnosticoPerfisReaisTest` roda o interpretador sobre os 23 PDFs de
+`PDF_edital_teste` e grava `build/diagnostico-perfis.tsv` com perfil detectado,
+hierarquia, status, matérias, tópicos e ocorrências de cada rótulo de unidade.
+A escolha do segundo perfil passa a ser por número, não por impressão.
+
+**Perfil A** (atual) é o formato mais comum: seção declarada de conteúdo
+programático, disciplina como linha de título isolada e tópicos como itens de
+lista ou linhas de texto. Cobre 13 dos 23 editais.
+
+**Perfil B** é o formato ancorado em título numerado, com disciplina inline e
+`CARGO n:` explícito. Ele aparece em **três** editais do conjunto — Câmara de
+Ponta Porã/MS (`4D1A8250…`), Ponta Porã nº 2 (`9B3058B2…`) e Fundação Arte e
+Cultura de Ilhabela (`edital_n_01_2026_1704225`). Não é exceção isolada: é um
+formato recorrente que o perfil A não lê.
+
+| Aspecto         | Perfil A                  | Perfil B                                        |
+| --------------- | ------------------------- | ----------------------------------------------- |
+| Âncora do bloco | título de anexo           | título numerado (`15.2.4 CONHECIMENTOS GERAIS`) |
+| Disciplina      | linha de título isolada   | prefixo antes de `:` (`NOME: 1 item…`)          |
+| Tópico          | item de lista/marcador    | item numerado no mesmo parágrafo                |
+| Nível 1         | implícito (curso "Geral") | `CARGO n: …` explícito                          |
+| Profundidade    | 2                         | 4                                               |
+
+Resultado atual: `SEM_CONTEUDO` e **zero matérias** em um edital com 7 cargos e
+cerca de 473 itens de conteúdo. É a maior diferença estrutural disponível no
+conjunto, e a falha é pelo motivo mais informativo possível — falta a âncora
+que o perfil A exige, não a competência para ler o conteúdo.
+
+O edital de Ponta Porã nº 1 é o **exemplar** (26 `CARGO n:`, 94 disciplinas
+inline) e serve de referência para a implementação; os outros dois são os casos
+de verificação — se a solução vale só para um deles, não é solução.
+
+### 18.0.4 Estrutura universal do domínio
+
+Comparando os dois perfis por componente:
+
+| Componente         | Perfil A | Perfil B | Motivo                                     |
+| ------------------ | -------- | -------- | ------------------------------------------ |
+| Metadata           | =        | =        | lê só o cabeçalho                          |
+| DocumentParser     | =        | =        | ambos chegam como texto                    |
+| ProfileClassifier  | ≠        | ≠        | âncora diferente                           |
+| HierarchyExtractor | ≠        | ≠        | 2 níveis vs 4 níveis                       |
+| SubjectExtractor   | ≠        | ≠        | linha de título vs prefixo inline          |
+| TopicExtractor     | ≠        | ≠        | marcador vs numeração inline               |
+| Segmenter          | ≠        | ≠        | âncora diferente                           |
+| Normalizer         | =        | =        | não olha o formato                         |
+| QualityValidator   | ≈        | ≈        | mesmas regras, limiar de profundidade muda |
+| Status             | =        | =        | mesmo vocabulário                          |
+
+Os componentes que variam estão **no meio do pipeline**; os das pontas —
+entrada (`DocumentModel`) e saída (normalização, validação, status) — são
+comuns. E a variação é sempre do mesmo tipo: **onde está a fronteira de cada
+nível**, não como o nível é representado.
+
+Isso é diferença de **parâmetros de leitura**, não de **família de objetos**.
+
+### 18.0.5 Decisão sobre Abstract Factory
+
+**Não será criada.** A evidência não sustenta uma família de objetos:
+
+- Normalizer, Validator, Status e DocumentModel são idênticos nos dois perfis.
+  Uma Abstract Factory criaria duas implementações de componentes que não
+  variam, e a duplicação seria o único resultado.
+- O que varia é configuração de leitura (âncora, forma de título, forma de
+  item) e um passo de algoritmo. Configuração já é o `EditalProfile`; o passo
+  de algoritmo é o ponto de extensão de `EstrategiaInterpretacaoEdital`.
+
+A combinação adotada é **Template Method + Strategy + componentes
+especializados**. A Abstract Factory fica como decisão rejeitada com motivo
+registrado, a ser revisitada se um terceiro formato exigir troca conjunta de
+normalização e validação.
+
+### 18.0.6 Regra de segurança da extração
+
+Nenhum perfil tenta acertar 100% sozinho — é desenho, não limitação. Toda saída
+carrega `StatusExtracao`, e `PARCIAL`, `BAIXA_CONFIANCA` e `NAO_IDENTIFICADO`
+chegam ao usuário como aviso na tela de processamento e como banner na revisão.
+
+Um PDF estranho tem três desfechos honestos: extrair o que deu, avisar o que
+não deu, ou declarar que não há conteúdo programático. O que ele nunca faz é
+devolver matérias inventadas como se fossem sucesso.
+
 ## 18.1 Objetivo
 
 Este capítulo define o módulo `Edital`, responsável pelo recebimento, armazenamento, identificação, processamento e acompanhamento do edital associado a um `Concurso`.

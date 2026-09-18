@@ -64,3 +64,30 @@ npx ng build
 
 `ddl-auto=validate`: a aplicação não sobe se `V1`–`V7` não casarem com as
 entidades. Nunca altere uma migration já aplicada — crie a próxima.
+
+## Interpretador de edital
+
+O pipeline de leitura do PDF é determinístico (regex), sem IA, e está em
+`domain/edital/interpretacao/`. A ordem das etapas é fixa em
+`InterpretadorEditalTemplate` (Template Method); o único passo variável é
+`interpretarConteudo`, especializado por `InterpretadorEditalFacade` delegando
+à `EstrategiaInterpretacaoEdital` do perfil. Não adicione `if` por formato no
+facade — crie a estratégia.
+
+`DiagnosticoPerfisReaisTest` roda o interpretador sobre os 23 PDFs de
+`PDF_edital_teste` e grava `build/diagnostico-perfis.tsv`. Use-o para medir
+qualquer mudança de extração antes de afirmar que melhorou:
+
+```bash
+./gradlew test --tests "*DiagnosticoPerfisReaisTest*"
+cat build/diagnostico-perfis.tsv
+```
+
+Estado medido: 13 dos 23 PDFs extraem estrutura; 10 terminam em
+`NAO_IDENTIFICADO` — 4 porque o documento realmente não tem seção de conteúdo
+programático (comunicado, errata, PDF sem camada de texto) e 6 porque o formato
+existe mas o perfil A não sabe ancorá-lo. O edital da Câmara de Ponta Porã
+(`4D1A8250…`) é o Perfil B escolhido — falha com zero matérias porque o bloco de
+conteúdo é ancorado em título numerado (`15.2.4 CONHECIMENTOS GERAIS`), a
+disciplina é prefixo inline (`NOME: 1 item.`) e o nível 1 é `CARGO n:`. Decisões
+registradas em `projeto/ARQUITETURA_INTERPRETADOR.md`.
